@@ -1,6 +1,6 @@
 module github.com/ngs/jplaw2epub
 
-go 1.22.1
+go 1.23.6
 
 require (
 	github.com/go-shiori/go-epub v1.2.1
