@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod:*)",
+      "Bash(go clean:*)",
+      "Bash(GOPROXY=direct go mod tidy)",
+      "Bash(go env:*)",
+      "Bash(GOPROXY=off GOSUMDB=off go mod tidy)",
+      "Bash(GOPROXY=https://goproxy.io,direct go mod tidy)",
+      "Bash(go get:*)",
+      "Bash(go:*)",
+      "WebFetch(domain:go.ngs.io)",
+      "WebFetch(domain:pkg.go.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

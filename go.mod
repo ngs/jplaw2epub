@@ -1,4 +1,4 @@
-module github.com/ngs/jplaw2epub
+module go.ngs.io/jplaw2epub
 
 go 1.23.6
 
@@ -6,7 +6,7 @@ toolchain go1.23.11
 
 require (
 	github.com/go-shiori/go-epub v1.2.1
-	github.com/ngs/go-jplaw-xml v0.0.2
+	go.ngs.io/jplaw-xml v0.0.4
 )
 
 require (
