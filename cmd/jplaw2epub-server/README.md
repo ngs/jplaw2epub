@@ -1,10 +1,13 @@
 # jplaw2epub-server
 
-Web API server that converts Japanese Law XML to EPUB format
+Web API server that converts Japanese Law XML to EPUB format and provides GraphQL API for law data queries
 
 ## Features
 
 - POST `/convert` - Accepts XML data and returns EPUB file
+- GET `/epubs/{law_id}` - Get EPUB file for a specific law ID
+- POST `/graphql` - GraphQL API endpoint for law queries
+- GET `/graphiql` - Interactive GraphQL playground
 - GET `/health` - Health check endpoint
 
 ## Local Development
@@ -22,16 +25,43 @@ PORT=3000 go run main.go
 
 ## API Usage
 
+### Convert XML to EPUB
 ```bash
 # Convert XML file to EPUB
 curl -X POST \
   -H "Content-Type: application/xml" \
   --data-binary @law.xml \
-  http://localhost:8080/convert \
+  http://localhost:8090/convert \
   -o output.epub
+```
 
-# Health check
-curl http://localhost:8080/health
+### Get EPUB by Law ID
+```bash
+# Download EPUB for a specific law (e.g., Radio Act)
+curl http://localhost:8090/epubs/325AC0000000131 -o radio_act.epub
+```
+
+### GraphQL Queries
+```bash
+# Search laws by title
+curl -X POST http://localhost:8090/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ laws(lawTitle: \"電波\", limit: 5) { totalCount laws { lawInfo { lawId lawNum } revisionInfo { lawTitle } } } }"}'
+
+# Get law revisions
+curl -X POST http://localhost:8090/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ revisions(lawId: \"325AC0000000131\") { lawInfo { lawNum } revisions { amendmentLawTitle amendmentEnforcementDate } } }"}'
+
+# Keyword search
+curl -X POST http://localhost:8090/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ keyword(keyword: \"無線\", limit: 3) { totalCount items { lawInfo { lawId } revisionInfo { lawTitle } sentences { text } } } }"}'
+```
+
+### Health check
+```bash
+curl http://localhost:8090/health
 ```
 
 ## Docker Build

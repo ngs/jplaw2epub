@@ -8,6 +8,249 @@ import (
 	jplaw "go.ngs.io/jplaw-api-v2"
 )
 
+// GraphQL Enums
+var categoryCodeEnum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "CategoryCode",
+	Description: "Law category codes",
+	Values: graphql.EnumValueConfigMap{
+		"CONSTITUTION": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdConstitution,
+			Description: "憲法",
+		},
+		"CRIMINAL": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdCriminal,
+			Description: "刑事",
+		},
+		"FINANCE_GENERAL": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdFinanceGeneral,
+			Description: "財務通則",
+		},
+		"FISHERIES": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdFisheries,
+			Description: "水産業",
+		},
+		"TOURISM": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdTourism,
+			Description: "観光",
+		},
+		"PARLIAMENT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdParliament,
+			Description: "国会",
+		},
+		"POLICE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdPolice,
+			Description: "警察",
+		},
+		"NATIONAL_PROPERTY": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdNationalProperty,
+			Description: "国有財産",
+		},
+		"MINING": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdMining,
+			Description: "鉱業",
+		},
+		"POSTAL_SERVICE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdPostalService,
+			Description: "郵務",
+		},
+		"ADMINISTRATIVE_ORG": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdAdministrativeOrg,
+			Description: "行政組織",
+		},
+		"FIRE_SERVICE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdFireService,
+			Description: "消防",
+		},
+		"NATIONAL_TAX": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdNationalTax,
+			Description: "国税",
+		},
+		"INDUSTRY": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdIndustry,
+			Description: "工業",
+		},
+		"TELECOMMUNICATIONS": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdTelecommunications,
+			Description: "電気通信",
+		},
+		"CIVIL_SERVICE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdCivilService,
+			Description: "公務員",
+		},
+		"NATIONAL_DEVELOPMENT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdNationalDevelopment,
+			Description: "国土開発",
+		},
+		"BUSINESS": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdBusiness,
+			Description: "事業",
+		},
+		"COMMERCE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdCommerce,
+			Description: "商事",
+		},
+		"LABOR": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdLabor,
+			Description: "労働",
+		},
+		"ADMINISTRATIVE_PROC": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdAdministrativeProc,
+			Description: "行政手続",
+		},
+		"LAND": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdLand,
+			Description: "土地",
+		},
+		"NATIONAL_BONDS": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdNationalBonds,
+			Description: "国債",
+		},
+		"FINANCE_INSURANCE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdFinanceInsurance,
+			Description: "金融・保険",
+		},
+		"ENVIRONMENTAL_PROTECT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdEnvironmentalProtect,
+			Description: "環境保全",
+		},
+		"STATISTICS": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdStatistics,
+			Description: "統計",
+		},
+		"CITY_PLANNING": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdCityPlanning,
+			Description: "都市計画",
+		},
+		"EDUCATION": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdEducation,
+			Description: "教育",
+		},
+		"FOREIGN_EXCHANGE_TRADE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdForeignExchangeTrade,
+			Description: "外国為替・外国貿易",
+		},
+		"PUBLIC_HEALTH": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdPublicHealth,
+			Description: "保健・衛生",
+		},
+		"LOCAL_GOVERNMENT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdLocalGovernment,
+			Description: "地方自治",
+		},
+		"ROADS": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdRoads,
+			Description: "道路",
+		},
+		"CULTURE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdCulture,
+			Description: "文教",
+		},
+		"LAND_TRANSPORT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdLandTransport,
+			Description: "陸運",
+		},
+		"SOCIAL_WELFARE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdSocialWelfare,
+			Description: "社会福祉",
+		},
+		"LOCAL_FINANCE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdLocalFinance,
+			Description: "地方財政",
+		},
+		"RIVERS": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdRivers,
+			Description: "河川",
+		},
+		"INDUSTRY_GENERAL": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdIndustryGeneral,
+			Description: "産業通則",
+		},
+		"MARITIME_TRANSPORT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdMaritimeTransport,
+			Description: "海運",
+		},
+		"SOCIAL_INSURANCE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdSocialInsurance,
+			Description: "社会保険",
+		},
+		"JUDICIARY": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdJudiciary,
+			Description: "司法",
+		},
+		"DISASTER_MANAGEMENT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdDisasterManagement,
+			Description: "災害対策",
+		},
+		"AGRICULTURE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdAgriculture,
+			Description: "農業",
+		},
+		"AVIATION": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdAviation,
+			Description: "航空",
+		},
+		"DEFENSE": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdDefense,
+			Description: "防衛",
+		},
+		"CIVIL": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdCivil,
+			Description: "民事",
+		},
+		"BUILDING_HOUSING": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdBuildingHousing,
+			Description: "建築・住宅",
+		},
+		"FORESTRY": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdForestry,
+			Description: "林業",
+		},
+		"FREIGHT_TRANSPORT": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdFreightTransport,
+			Description: "貨物運送",
+		},
+		"FOREIGN_AFFAIRS": &graphql.EnumValueConfig{
+			Value: jplaw.CategoryCdForeignAffairs,
+			Description: "外事",
+		},
+	},
+})
+
+var lawTypeEnum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "LawType",
+	Description: "Types of laws",
+	Values: graphql.EnumValueConfigMap{
+		"CONSTITUTION": &graphql.EnumValueConfig{
+			Value: jplaw.LawTypeConstitution,
+			Description: "憲法",
+		},
+		"ACT": &graphql.EnumValueConfig{
+			Value: jplaw.LawTypeAct,
+			Description: "法律",
+		},
+		"CABINET_ORDER": &graphql.EnumValueConfig{
+			Value: jplaw.LawTypeCabinetorder,
+			Description: "政令",
+		},
+		"IMPERIAL_ORDER": &graphql.EnumValueConfig{
+			Value: jplaw.LawTypeImperialorder,
+			Description: "勅令",
+		},
+		"MINISTERIAL_ORDINANCE": &graphql.EnumValueConfig{
+			Value: jplaw.LawTypeMinisterialordinance,
+			Description: "府省令",
+		},
+		"RULE": &graphql.EnumValueConfig{
+			Value: jplaw.LawTypeRule,
+			Description: "規則",
+		},
+		"MISC": &graphql.EnumValueConfig{
+			Value: jplaw.LawTypeMisc,
+			Description: "その他",
+		},
+	},
+})
+
 // GraphQL Types - Fixed to match jplaw-api-v2 types
 
 var lawInfoType = graphql.NewObject(graphql.ObjectConfig{
@@ -462,13 +705,13 @@ var queryTypeFixed = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.String,
 				},
 				"lawType": &graphql.ArgumentConfig{
-					Type: graphql.NewList(graphql.String),
+					Type: graphql.NewList(lawTypeEnum),
 				},
 				"asof": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
 				"categoryCode": &graphql.ArgumentConfig{
-					Type: graphql.NewList(graphql.String),
+					Type: graphql.NewList(categoryCodeEnum),
 				},
 				"promulgateDateFrom": &graphql.ArgumentConfig{
 					Type: graphql.String,
@@ -578,7 +821,7 @@ var queryTypeFixed = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.String,
 				},
 				"categoryCode": &graphql.ArgumentConfig{
-					Type: graphql.NewList(graphql.String),
+					Type: graphql.NewList(categoryCodeEnum),
 				},
 				"updatedFrom": &graphql.ArgumentConfig{
 					Type: graphql.String,
@@ -660,13 +903,13 @@ var queryTypeFixed = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.String,
 				},
 				"lawType": &graphql.ArgumentConfig{
-					Type: graphql.NewList(graphql.String),
+					Type: graphql.NewList(lawTypeEnum),
 				},
 				"asof": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
 				"categoryCode": &graphql.ArgumentConfig{
-					Type: graphql.NewList(graphql.String),
+					Type: graphql.NewList(categoryCodeEnum),
 				},
 				"promulgateDateFrom": &graphql.ArgumentConfig{
 					Type: graphql.String,

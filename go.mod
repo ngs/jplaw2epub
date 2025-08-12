@@ -13,6 +13,6 @@ require (
 	github.com/graphql-go/graphql v0.8.1 // indirect
 	github.com/graphql-go/handler v0.2.4 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
-	go.ngs.io/jplaw-api-v2 v0.0.2 // indirect
+	go.ngs.io/jplaw-api-v2 v0.0.3 // indirect
 	golang.org/x/net v0.34.0 // indirect
 )
