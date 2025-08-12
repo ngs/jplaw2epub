@@ -1,4 +1,4 @@
-package main
+package jplaw2epub
 
 import "go.ngs.io/jplaw-xml"
 

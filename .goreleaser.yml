@@ -8,7 +8,9 @@ before:
     - go test ./...
 
 builds:
-  - env:
+  - main: ./cmd/jplaw2epub
+    binary: jplaw2epub
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
@@ -17,18 +19,11 @@ builds:
     goarch:
       - amd64
       - arm64
-      - arm
-    goarm:
-      - "6"
-      - "7"
     ignore:
-      - goos: windows
-        goarch: arm
       - goos: windows
         goarch: arm64
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
-    binary: jplaw2epub
 
 archives:
   - format: tar.gz
@@ -47,7 +42,7 @@ archives:
       - README.md
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
@@ -57,10 +52,10 @@ changelog:
   use: github
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-      - '^chore:'
-      - '^ci:'
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
       - Merge pull request
       - Merge branch
   groups:
@@ -79,5 +74,29 @@ release:
     name: jplaw2epub
   draft: false
   prerelease: auto
-  name_template: "{{.ProjectName}}-v{{.Version}}"
+  name_template: "{{.ProjectName}} v{{.Version}}"
   disable: false
+
+brews:
+  - repository:
+      owner: ngs
+      name: homebrew-tap
+      branch: main
+    directory: Formula
+    homepage: https://github.com/ngs/jplaw2epub
+    description: "Convert Japanese Standard Law XML Schema into EPUB files"
+    license: MIT
+    test: |
+      system "#{bin}/jplaw2epub -h"
+
+nfpms:
+  - file_name_template: "{{ .ProjectName }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    homepage: https://github.com/ngs/jplaw2epub
+    description: "Convert Japanese Standard Law XML Schema into EPUB files"
+    maintainer: Atsushi Nagase <a@ngs.io>
+    license: MIT
+    vendor: ngs.io
+    formats:
+      - deb
+      - rpm
+      - apk

@@ -85,8 +85,11 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      - name: Build
-        run: go build -v -o jplaw2epub${{ matrix.os == 'windows-latest' && '.exe' || '' }} .
+      - name: Build library
+        run: go build -v ./...
+
+      - name: Build CLI tool
+        run: go build -v -o jplaw2epub${{ matrix.os == 'windows-latest' && '.exe' || '' }} ./cmd/jplaw2epub
 
       - name: Verify binary
         run: ./jplaw2epub${{ matrix.os == 'windows-latest' && '.exe' || '' }} -h || true

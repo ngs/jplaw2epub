@@ -19,7 +19,13 @@
       "Bash(grep:*)",
       "Bash(sed:*)",
       "Bash(awk:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(touch:*)",
+      "Bash(~/go/bin/goreleaser check)",
+      "Bash(echo:*)",
+      "Bash(echo \"checking GOBIN: $GOBIN\")",
+      "Bash(find:*)",
+      "Bash(/Users/ngs/go/1.23.12/bin/goreleaser check)"
     ],
     "deny": [],
     "ask": []
