@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	testLawTitle = "テスト法"
+	testLawTitle   = "テスト法"
 	testXMLContent = `<?xml version="1.0" encoding="UTF-8"?>
 <Law Era="Reiwa" Year="2024" LawType="Act" Num="1" Lang="ja">
 	<LawNum>令和六年法律第一号</LawNum>
