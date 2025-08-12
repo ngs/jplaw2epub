@@ -7,7 +7,6 @@ import (
 	"go.ngs.io/jplaw-xml"
 )
 
-
 func TestProcessItems(t *testing.T) {
 	tests := []struct {
 		name  string

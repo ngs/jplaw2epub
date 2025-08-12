@@ -10,25 +10,25 @@ import (
 
 func TestBuildArticleFilename(t *testing.T) {
 	tests := []struct {
-		name        string
-		chapterIdx  int
-		sectionIdx  int
-		articleIdx  int
-		want        string
+		name       string
+		chapterIdx int
+		sectionIdx int
+		articleIdx int
+		want       string
 	}{
 		{
-			name:        "Article directly under chapter",
-			chapterIdx:  1,
-			sectionIdx:  -1,
-			articleIdx:  2,
-			want:        "article-1-2.xhtml",
+			name:       "Article directly under chapter",
+			chapterIdx: 1,
+			sectionIdx: -1,
+			articleIdx: 2,
+			want:       "article-1-2.xhtml",
 		},
 		{
-			name:        "Article under section",
-			chapterIdx:  3,
-			sectionIdx:  4,
-			articleIdx:  5,
-			want:        "article-3-4-5.xhtml",
+			name:       "Article under section",
+			chapterIdx: 3,
+			sectionIdx: 4,
+			articleIdx: 5,
+			want:       "article-3-4-5.xhtml",
 		},
 	}
 

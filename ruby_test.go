@@ -147,7 +147,7 @@ func TestProcessTextWithRuby(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := processTextWithRuby(tt.content, tt.rubies)
 			if got != tt.want {
-				t.Errorf("processTextWithRuby(%q, %v) = %v, want %v", 
+				t.Errorf("processTextWithRuby(%q, %v) = %v, want %v",
 					tt.content, tt.rubies, got, tt.want)
 			}
 		})
@@ -163,14 +163,14 @@ func TestProcessTextWithRuby_Integration(t *testing.T) {
 			Rt:      []jplaw.Rt{{Content: "こう"}},
 		},
 	}
-	
+
 	got := processTextWithRuby(content, rubies)
-	
+
 	// Verify content comes first
 	if !strings.HasPrefix(got, content) {
 		t.Errorf("Content should come first in result")
 	}
-	
+
 	// Verify ruby is appended at the end
 	if !strings.HasSuffix(got, "<ruby>較<rt>こう</rt></ruby>") {
 		t.Errorf("Ruby should be appended at the end")
