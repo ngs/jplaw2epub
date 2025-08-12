@@ -251,6 +251,133 @@ var lawTypeEnum = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
+var lawNumEraEnum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "LawNumEra",
+	Description: "Era names for law numbers",
+	Values: graphql.EnumValueConfigMap{
+		"MEIJI": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumEraMeiji,
+			Description: "明治",
+		},
+		"TAISHO": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumEraTaisho,
+			Description: "大正",
+		},
+		"SHOWA": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumEraShowa,
+			Description: "昭和",
+		},
+		"HEISEI": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumEraHeisei,
+			Description: "平成",
+		},
+		"REIWA": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumEraReiwa,
+			Description: "令和",
+		},
+	},
+})
+
+var lawNumTypeEnum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "LawNumType",
+	Description: "Law number types",
+	Values: graphql.EnumValueConfigMap{
+		"CONSTITUTION": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumTypeConstitution,
+			Description: "憲法",
+		},
+		"ACT": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumTypeAct,
+			Description: "法律",
+		},
+		"CABINET_ORDER": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumTypeCabinetorder,
+			Description: "政令",
+		},
+		"IMPERIAL_ORDER": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumTypeImperialorder,
+			Description: "勅令",
+		},
+		"MINISTERIAL_ORDINANCE": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumTypeMinisterialordinance,
+			Description: "府省令",
+		},
+		"RULE": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumTypeRule,
+			Description: "規則",
+		},
+		"MISC": &graphql.EnumValueConfig{
+			Value: jplaw.LawNumTypeMisc,
+			Description: "その他",
+		},
+	},
+})
+
+var currentRevisionStatusEnum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "CurrentRevisionStatus",
+	Description: "History status",
+	Values: graphql.EnumValueConfigMap{
+		"CURRENT_ENFORCED": &graphql.EnumValueConfig{
+			Value: jplaw.CurrentRevisionStatusCurrentenforced,
+			Description: "現施行法令",
+		},
+		"UNENFORCED": &graphql.EnumValueConfig{
+			Value: jplaw.CurrentRevisionStatusUnenforced,
+			Description: "未施行法令",
+		},
+		"PREVIOUS_ENFORCED": &graphql.EnumValueConfig{
+			Value: jplaw.CurrentRevisionStatusPreviousenforced,
+			Description: "過去施行法令",
+		},
+		"REPEAL": &graphql.EnumValueConfig{
+			Value: jplaw.CurrentRevisionStatusRepeal,
+			Description: "廃止法令",
+		},
+	},
+})
+
+var repealStatusEnum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "RepealStatus",
+	Description: "Repeal status",
+	Values: graphql.EnumValueConfigMap{
+		"NONE": &graphql.EnumValueConfig{
+			Value: jplaw.RepealStatusNone,
+			Description: "廃止・失効等のステータスなし",
+		},
+		"REPEAL": &graphql.EnumValueConfig{
+			Value: jplaw.RepealStatusRepeal,
+			Description: "廃止",
+		},
+		"EXPIRE": &graphql.EnumValueConfig{
+			Value: jplaw.RepealStatusExpire,
+			Description: "失効",
+		},
+		"SUSPEND": &graphql.EnumValueConfig{
+			Value: jplaw.RepealStatusSuspend,
+			Description: "停止",
+		},
+		"LOSS_OF_EFFECTIVENESS": &graphql.EnumValueConfig{
+			Value: jplaw.RepealStatusLossofeffectiveness,
+			Description: "実効性喪失",
+		},
+	},
+})
+
+var missionEnum = graphql.NewEnum(graphql.EnumConfig{
+	Name: "Mission",
+	Description: "Law mission type",
+	Values: graphql.EnumValueConfigMap{
+		"NEW": &graphql.EnumValueConfig{
+			Value: jplaw.MissionNew,
+			Description: "新規制定",
+		},
+		"PARTIAL": &graphql.EnumValueConfig{
+			Value: jplaw.MissionPartial,
+			Description: "一部改正",
+		},
+	},
+})
+
 // GraphQL Types - Fixed to match jplaw-api-v2 types
 
 var lawInfoType = graphql.NewObject(graphql.ObjectConfig{
@@ -275,10 +402,10 @@ var lawInfoType = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"lawNumEra": &graphql.Field{
-			Type: graphql.String,
+			Type: lawNumEraEnum,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				if law, ok := p.Source.(*jplaw.LawInfo); ok && law.LawNumEra != nil {
-					return string(*law.LawNumEra), nil
+					return *law.LawNumEra, nil
 				}
 				return nil, nil
 			},
@@ -302,19 +429,19 @@ var lawInfoType = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"lawNumType": &graphql.Field{
-			Type: graphql.String,
+			Type: lawNumTypeEnum,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				if law, ok := p.Source.(*jplaw.LawInfo); ok && law.LawNumType != nil {
-					return string(*law.LawNumType), nil
+					return *law.LawNumType, nil
 				}
 				return nil, nil
 			},
 		},
 		"lawType": &graphql.Field{
-			Type: graphql.String,
+			Type: lawTypeEnum,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				if law, ok := p.Source.(*jplaw.LawInfo); ok && law.LawType != nil {
-					return string(*law.LawType), nil
+					return *law.LawType, nil
 				}
 				return nil, nil
 			},
@@ -371,10 +498,10 @@ var revisionInfoType = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"lawType": &graphql.Field{
-			Type: graphql.String,
+			Type: lawTypeEnum,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				if rev, ok := p.Source.(*jplaw.RevisionInfo); ok && rev.LawType != nil {
-					return string(*rev.LawType), nil
+					return *rev.LawType, nil
 				}
 				return nil, nil
 			},
@@ -452,28 +579,28 @@ var revisionInfoType = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"currentRevisionStatus": &graphql.Field{
-			Type: graphql.String,
+			Type: currentRevisionStatusEnum,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				if rev, ok := p.Source.(*jplaw.RevisionInfo); ok && rev.CurrentRevisionStatus != nil {
-					return string(*rev.CurrentRevisionStatus), nil
+					return *rev.CurrentRevisionStatus, nil
 				}
 				return nil, nil
 			},
 		},
 		"repealStatus": &graphql.Field{
-			Type: graphql.String,
+			Type: repealStatusEnum,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				if rev, ok := p.Source.(*jplaw.RevisionInfo); ok && rev.RepealStatus != nil {
-					return string(*rev.RepealStatus), nil
+					return *rev.RepealStatus, nil
 				}
 				return nil, nil
 			},
 		},
 		"mission": &graphql.Field{
-			Type: graphql.String,
+			Type: missionEnum,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				if rev, ok := p.Source.(*jplaw.RevisionInfo); ok && rev.Mission != nil {
-					return string(*rev.Mission), nil
+					return *rev.Mission, nil
 				}
 				return nil, nil
 			},
