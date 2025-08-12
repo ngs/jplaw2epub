@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"io"
@@ -10,7 +11,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
+	jplaw "go.ngs.io/jplaw-api-v2"
 	"go.ngs.io/jplaw2epub"
 )
 
@@ -35,6 +38,7 @@ func main() {
 
 	http.HandleFunc("/convert", convertHandler)
 	http.HandleFunc("/health", healthHandler)
+	http.HandleFunc("/epubs/", epubsHandler)
 
 	log.Printf("Server starting on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
@@ -102,4 +106,106 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"status":"ok","service":"jplaw2epub-server"}`)
+}
+
+func epubsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extract ID from path: /epubs/{id}
+	path := strings.TrimPrefix(r.URL.Path, "/epubs/")
+	if path == "" || path == "/" {
+		http.Error(w, "Law ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Remove any trailing slashes
+	lawID := strings.TrimSuffix(path, "/")
+
+	log.Printf("Fetching law data for ID: %s", lawID)
+
+	// Create API client
+	client := jplaw.NewClient()
+
+	// Set up parameters to get XML format
+	xmlFormat := jplaw.ResponseFormatXml
+	params := &jplaw.GetLawDataParams{
+		LawFullTextFormat: &xmlFormat,
+	}
+
+	// Get law data with XML format
+	lawData, err := client.GetLawData(lawID, params)
+	if err != nil {
+		log.Printf("Error fetching law data for ID %s: %v", lawID, err)
+		if strings.Contains(err.Error(), "404") {
+			http.Error(w, "Law not found", http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Error fetching law data: %v", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Extract XML content from response
+	var xmlContent []byte
+	if lawData.LawFullText != nil {
+		// The LawFullText should contain the XML as a string when LawFullTextFormat is XML
+		if xmlStr, ok := (*lawData.LawFullText).(string); ok {
+			// The XML is Base64 encoded, decode it
+			decodedXML, err := base64.StdEncoding.DecodeString(xmlStr)
+			if err != nil {
+				log.Printf("Error decoding Base64 for law ID %s: %v", lawID, err)
+				http.Error(w, "Error decoding XML content", http.StatusInternalServerError)
+				return
+			}
+			// Remove <TmpRootTag> wrapper if present
+			xmlStr := string(decodedXML)
+			if strings.HasPrefix(xmlStr, "<TmpRootTag>") {
+				xmlStr = strings.TrimPrefix(xmlStr, "<TmpRootTag>")
+				xmlStr = strings.TrimSuffix(xmlStr, "</TmpRootTag>")
+			}
+			xmlContent = []byte(xmlStr)
+			log.Printf("Decoded XML content length for law ID %s: %d bytes", lawID, len(xmlContent))
+		} else {
+			log.Printf("Unexpected type for LawFullText: %T", *lawData.LawFullText)
+			http.Error(w, "Invalid XML format in response", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		log.Printf("No LawFullText in response for law ID %s", lawID)
+		http.Error(w, "No law content in response", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert XML to EPUB
+	xmlReader := bytes.NewReader(xmlContent)
+	book, err := jplaw2epub.CreateEPUBFromXMLFile(xmlReader)
+	if err != nil {
+		log.Printf("Error creating EPUB for law ID %s: %v", lawID, err)
+		http.Error(w, fmt.Sprintf("Error creating EPUB: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Generate EPUB to buffer
+	var buf bytes.Buffer
+	if _, err := book.WriteTo(&buf); err != nil {
+		log.Printf("Error writing EPUB to buffer for law ID %s: %v", lawID, err)
+		http.Error(w, "Error generating EPUB", http.StatusInternalServerError)
+		return
+	}
+
+	// Set response headers
+	filename := fmt.Sprintf("%s.epub", lawID)
+	w.Header().Set("Content-Type", "application/epub+zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
+
+	// Write response
+	if _, err := buf.WriteTo(w); err != nil {
+		log.Printf("Error writing response for law ID %s: %v", lawID, err)
+		return
+	}
+
+	log.Printf("Successfully converted law ID %s to EPUB (%d bytes)", lawID, buf.Len())
 }

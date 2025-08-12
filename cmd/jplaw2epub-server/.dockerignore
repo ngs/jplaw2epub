@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Test files
+*_test.go
+*.test
+*.out
+coverage.out
+test.epub
+denpa.epub
+
+# Documentation
+*.md
+LICENSE
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+jplaw2epub-server
+
+# CloudBuild
+cloudbuild.yaml
