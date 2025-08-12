@@ -100,8 +100,6 @@ issues:
         - errcheck
 
     - path: main\.go
-      linters:
-        - gocyclo
       text: "Magic number"
 
   max-issues-per-linter: 0

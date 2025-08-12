@@ -15,6 +15,21 @@ import (
 
 // Removed baseCSS - list styles are now determined dynamically
 
+// HTML constants
+const (
+	htmlOL    = "<ol>"
+	htmlOLEnd = "</ol>"
+	htmlLI    = "<li>"
+	htmlLIEnd = "</li>"
+
+	// List style types
+	listStyleDisc     = "disc"
+	listStyleDecimal  = "decimal"
+	listStyleCJK      = "cjk-ideographic"
+	listStyleKatakana = "katakana-iroha"
+	listStyleHiragana = "hiragana-iroha"
+)
+
 // processRubyElements converts Ruby elements to HTML ruby tags
 func processRubyElements(rubies []jplaw.Ruby) string {
 	var result strings.Builder
@@ -70,7 +85,7 @@ func isListNumber(text string) bool {
 		"１", "２", "３", "４", "５", "６", "７", "８", "９", "１０",
 		"１１", "１２", "１３", "１４", "１５", "１６", "１７", "１８", "１９", "２０",
 	}
-	
+
 	for _, num := range listNumbers {
 		if text == num {
 			return true
@@ -84,79 +99,56 @@ func getListStyleType(titles []string) string {
 	if len(titles) == 0 {
 		return ""
 	}
-	
+
 	// Check first title to determine the pattern
 	first := titles[0]
-	
+
 	// CJK ideographic (一, 二, 三...)
 	cjkNumbers := []string{"一", "二", "三", "四", "五", "六", "七", "八", "九", "十"}
 	for _, num := range cjkNumbers {
 		if first == num {
-			return "cjk-ideographic"
+			return listStyleCJK
 		}
 	}
-	
+
 	// Katakana iroha (イ, ロ, ハ...)
 	katakanaIroha := []string{"イ", "ロ", "ハ", "ニ", "ホ", "ヘ", "ト", "チ", "リ", "ヌ"}
 	for _, kana := range katakanaIroha {
 		if first == kana {
-			return "katakana-iroha"
+			return listStyleKatakana
 		}
 	}
-	
+
 	// Hiragana iroha (い, ろ, は...)
 	hiraganaIroha := []string{"い", "ろ", "は", "に", "ほ", "へ", "と", "ち", "り", "ぬ"}
 	for _, kana := range hiraganaIroha {
 		if first == kana {
-			return "hiragana-iroha"
+			return listStyleHiragana
 		}
 	}
-	
+
 	// Full-width Arabic numerals (１, ２, ３...)
 	fullWidthNumbers := []string{"１", "２", "３", "４", "５", "６", "７", "８", "９"}
 	for _, num := range fullWidthNumbers {
 		if first == num {
-			return "decimal"
+			return listStyleDecimal
 		}
 	}
-	
+
 	// Half-width Arabic numerals (1, 2, 3...)
 	if strings.HasPrefix(first, "1") {
-		return "decimal"
+		return listStyleDecimal
 	}
-	
+
 	// Parenthesized numbers (（１）, （２）...)
 	if strings.HasPrefix(first, "（") && strings.HasSuffix(first, "）") {
-		return "decimal"
+		return listStyleDecimal
 	}
-	
+
 	// Default
-	return "disc"
+	return listStyleDisc
 }
 
-// trimListPrefix removes Japanese number prefixes from the beginning of list item text
-func trimListPrefix(text string) string {
-	// Common list prefixes to remove
-	prefixes := []string{
-		// CJK ideographic numbers (一, 二, 三, etc.)
-		"一　", "二　", "三　", "四　", "五　", "六　", "七　", "八　", "九　", "十　",
-		// Katakana iroha (イ, ロ, ハ, etc.)
-		"イ　", "ロ　", "ハ　", "ニ　", "ホ　", "ヘ　", "ト　", "チ　", "リ　", "ヌ　", 
-		"ル　", "ヲ　", "ワ　", "カ　", "ヨ　", "タ　", "レ　", "ソ　", "ツ　", "ネ　",
-		// With different spacing
-		"一 ", "二 ", "三 ", "四 ", "五 ", "六 ", "七 ", "八 ", "九 ", "十 ",
-		"イ ", "ロ ", "ハ ", "ニ ", "ホ ", "ヘ ", "ト ", "チ ", "リ ", "ヌ ",
-		"ル ", "ヲ ", "ワ ", "カ ", "ヨ", "タ", "レ", "ソ", "ツ", "ネ",
-	}
-	
-	trimmed := text
-	for _, prefix := range prefixes {
-		if strings.HasPrefix(trimmed, prefix) {
-			return strings.TrimPrefix(trimmed, prefix)
-		}
-	}
-	return trimmed
-}
 
 // getEraString converts Era enum to Japanese string
 func getEraString(era jplaw.Era) string {
@@ -202,10 +194,10 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 
 		// Group paragraphs with Num attribute into lists
 		var inList bool
-		
+
 		for paraIdx := range article.Paragraph {
 			para := &article.Paragraph[paraIdx]
-			
+
 			// Check if this paragraph should be in a list (has Num > 0)
 			if para.Num > 0 {
 				// Start a new list if not in one
@@ -216,16 +208,16 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 						paraNumTitles = append(paraNumTitles, article.Paragraph[i].ParagraphNum.Content)
 					}
 					listStyle := getListStyleType(paraNumTitles)
-					if listStyle != "" && listStyle != "disc" {
+					if listStyle != "" && listStyle != listStyleDisc {
 						body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, listStyle)
 					} else {
-						body += "<ol>"
+						body += htmlOL
 					}
 					inList = true
 				}
-				
-				body += "<li>"
-				
+
+				body += htmlLI
+
 				// Add paragraph number if present (as a heading within the list item)
 				if para.ParagraphNum.Content != "" {
 					// Skip if it's just a number that matches the list style
@@ -233,7 +225,7 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 						body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(para.ParagraphNum.Content))
 					}
 				}
-				
+
 				// Process paragraph sentences
 				if len(para.ParagraphSentence.Sentence) > 0 {
 					for sentenceIdx := range para.ParagraphSentence.Sentence {
@@ -241,7 +233,7 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 						body += sentence.HTML()
 					}
 				}
-				
+
 				// Process items within paragraph
 				if len(para.Item) > 0 {
 					// Collect item titles to determine list style
@@ -252,30 +244,30 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 						}
 					}
 					itemListStyle := getListStyleType(itemTitles)
-					
-					if itemListStyle != "" && itemListStyle != "disc" {
+
+					if itemListStyle != "" && itemListStyle != listStyleDisc {
 						body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, itemListStyle)
 					} else {
-						body += "<ol>"
+						body += htmlOL
 					}
-					
+
 					for itemIdx := range para.Item {
 						item := &para.Item[itemIdx]
-						body += "<li>"
-						
+						body += htmlLI
+
 						// Add item title if present (skip if it's just a list number)
 						if item.ItemTitle != nil && item.ItemTitle.Content != "" {
 							if !isListNumber(item.ItemTitle.Content) {
 								body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(item.ItemTitle.Content))
 							}
 						}
-						
+
 						// Process item sentences
 						for sentIdx := range item.ItemSentence.Sentence {
 							sent := &item.ItemSentence.Sentence[sentIdx]
 							body += sent.HTML()
 						}
-						
+
 						// Process Subitem1 if any
 						if len(item.Subitem1) > 0 {
 							// Collect subitem titles to determine list style
@@ -286,16 +278,16 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 								}
 							}
 							subitemListStyle := getListStyleType(subitemTitles)
-							
-							if subitemListStyle != "" && subitemListStyle != "disc" {
+
+							if subitemListStyle != "" && subitemListStyle != listStyleDisc {
 								body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, subitemListStyle)
 							} else {
-								body += "<ol>"
+								body += htmlOL
 							}
-							
+
 							for subIdx := range item.Subitem1 {
 								subitem := &item.Subitem1[subIdx]
-								body += "<li>"
+								body += htmlLI
 								if subitem.Subitem1Title != nil && subitem.Subitem1Title.Content != "" {
 									if !isListNumber(subitem.Subitem1Title.Content) {
 										body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(subitem.Subitem1Title.Content))
@@ -305,7 +297,7 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 									subSent := &subitem.Subitem1Sentence.Sentence[subSentIdx]
 									body += subSent.HTML()
 								}
-								
+
 								// Process Subitem2 if any
 								if len(subitem.Subitem2) > 0 {
 									// Collect subitem2 titles to determine list style
@@ -316,16 +308,16 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 										}
 									}
 									subitem2ListStyle := getListStyleType(subitem2Titles)
-									
-									if subitem2ListStyle != "" && subitem2ListStyle != "disc" {
+
+									if subitem2ListStyle != "" && subitem2ListStyle != listStyleDisc {
 										body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, subitem2ListStyle)
 									} else {
-										body += "<ol>"
+										body += htmlOL
 									}
-									
+
 									for sub2Idx := range subitem.Subitem2 {
 										subitem2 := &subitem.Subitem2[sub2Idx]
-										body += "<li>"
+										body += htmlLI
 										if subitem2.Subitem2Title != nil && subitem2.Subitem2Title.Content != "" {
 											if !isListNumber(subitem2.Subitem2Title.Content) {
 												body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(subitem2.Subitem2Title.Content))
@@ -335,35 +327,35 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 											sub2Sent := &subitem2.Subitem2Sentence.Sentence[sub2SentIdx]
 											body += sub2Sent.HTML()
 										}
-										body += "</li>"
+										body += htmlLIEnd
 									}
-									body += "</ol>"
+									body += htmlOLEnd
 								}
-								
-								body += "</li>"
+
+								body += htmlLIEnd
 							}
-							body += "</ol>"
+							body += htmlOLEnd
 						}
-						
-						body += "</li>"
+
+						body += htmlLIEnd
 					}
-					body += "</ol>"
+					body += htmlOLEnd
 				}
-				
-				body += "</li>"
-				
+
+				body += htmlLIEnd
+
 			} else {
 				// Close list if we were in one
 				if inList {
-					body += "</ol>"
+					body += htmlOLEnd
 					inList = false
 				}
-				
+
 				// Process as regular paragraph (not in a list)
 				if para.ParagraphNum.Content != "" {
 					body += fmt.Sprintf("<h4>%s</h4>", html.EscapeString(para.ParagraphNum.Content))
 				}
-				
+
 				if len(para.ParagraphSentence.Sentence) > 0 {
 					body += "<p>"
 					for sentenceIdx := range para.ParagraphSentence.Sentence {
@@ -372,7 +364,7 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 					}
 					body += "</p>"
 				}
-				
+
 				// Process items (if not in numbered paragraph)
 				if len(para.Item) > 0 {
 					// Similar item processing as above
@@ -383,38 +375,38 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 						}
 					}
 					itemListStyle := getListStyleType(itemTitles)
-					
-					if itemListStyle != "" && itemListStyle != "disc" {
+
+					if itemListStyle != "" && itemListStyle != listStyleDisc {
 						body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, itemListStyle)
 					} else {
-						body += "<ol>"
+						body += htmlOL
 					}
-					
+
 					for itemIdx := range para.Item {
 						item := &para.Item[itemIdx]
-						body += "<li>"
-						
+						body += htmlLI
+
 						if item.ItemTitle != nil && item.ItemTitle.Content != "" {
 							if !isListNumber(item.ItemTitle.Content) {
 								body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(item.ItemTitle.Content))
 							}
 						}
-						
+
 						for sentIdx := range item.ItemSentence.Sentence {
 							sent := &item.ItemSentence.Sentence[sentIdx]
 							body += sent.HTML()
 						}
-						
-						body += "</li>"
+
+						body += htmlLIEnd
 					}
-					body += "</ol>"
+					body += htmlOLEnd
 				}
 			}
 		}
-		
+
 		// Close list if still open at the end
 		if inList {
-			body += "</ol>"
+			body += htmlOLEnd
 		}
 		// Use plain text for table of contents
 		articleTitlePlain := article.ArticleTitle.Content
