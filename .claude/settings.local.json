@@ -25,7 +25,8 @@
       "Bash(echo:*)",
       "Bash(echo \"checking GOBIN: $GOBIN\")",
       "Bash(find:*)",
-      "Bash(/Users/ngs/go/1.23.12/bin/goreleaser check)"
+      "Bash(/Users/ngs/go/1.23.12/bin/goreleaser check)",
+      "WebFetch(domain:laws.e-gov.go.jp)"
     ],
     "deny": [],
     "ask": []
