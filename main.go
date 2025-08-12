@@ -33,16 +33,23 @@ func processRubyElements(rubies []jplaw.Ruby) string {
 	return result.String()
 }
 
-// processTextWithRuby processes mixed content (text + Ruby elements)
+// processTextWithRuby processes mixed content (text + Ruby elements)  
+// Note: Due to XML parsing limitations, Ruby elements that were inline in the original
+// XML are extracted separately, losing their position. As a workaround, we append them.
 func processTextWithRuby(content string, rubies []jplaw.Ruby) string {
 	if len(rubies) == 0 {
 		return html.EscapeString(content)
 	}
 
+	// For now, we just append Ruby elements at the end
+	// This is not ideal but the jplaw-xml library doesn't preserve position
 	var result strings.Builder
 	if content != "" {
 		result.WriteString(html.EscapeString(content))
 	}
+	
+	// Add Ruby elements (they will appear at the end of the text)
+	// In the case of "較(こう)正", this will show the Ruby annotation
 	result.WriteString(processRubyElements(rubies))
 	return result.String()
 }
@@ -65,13 +72,9 @@ func getEraString(era jplaw.Era) string {
 	}
 }
 
-// setupEPUBMetadata sets up the basic EPUB metadata and CSS
-func setupEPUBMetadata(book *epub.Epub, data *jplaw.Law) error {
-	book.SetAuthor(data.LawNum)
-	book.SetLang(string(data.Lang))
-
-	// Add CSS for Ruby text rendering
-	rubyCSSContent := `
+// getRubyCSS returns CSS for Ruby text rendering as a style tag
+func getRubyCSS() string {
+	return `<style type="text/css">
 /* Ruby text styling for Japanese phonetic guides */
 ruby {
 	ruby-align: center;
@@ -101,11 +104,113 @@ ruby > rt {
 		ruby-position: over;
 	}
 }
-`
-	_, err := book.AddCSS(rubyCSSContent, "ruby.css")
-	if err != nil {
-		return fmt.Errorf("error adding Ruby CSS: %w", err)
+</style>`
+}
+
+// processArticles processes a slice of articles and adds them to the EPUB
+func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename string, chapterIdx, sectionIdx int) error {
+	for j := range articles {
+		article := &articles[j] // Use pointer to avoid copying
+		var subFilename string
+		if sectionIdx >= 0 {
+			subFilename = fmt.Sprintf("article-%d-%d-%d.xhtml", chapterIdx, sectionIdx, j)
+		} else {
+			subFilename = fmt.Sprintf("article-%d-%d.xhtml", chapterIdx, j)
+		}
+
+		articleTitleHTML := processTextWithRuby(article.ArticleTitle.Content, article.ArticleTitle.Ruby)
+		articleCaptionHTML := ""
+		if article.ArticleCaption != nil {
+			articleCaptionHTML = processTextWithRuby(article.ArticleCaption.Content, article.ArticleCaption.Ruby)
+		}
+		var articleTitleFull string
+		if articleCaptionHTML != "" {
+			articleTitleFull = fmt.Sprintf("%s %s", articleTitleHTML, articleCaptionHTML)
+		} else {
+			articleTitleFull = articleTitleHTML
+		}
+		body := fmt.Sprintf("%s<h3>%s</h3>", getRubyCSS(), articleTitleFull)
+		
+		// Process paragraphs
+		for paraIdx := range article.Paragraph {
+			para := &article.Paragraph[paraIdx]
+			
+			// Add paragraph number if present
+			if para.ParagraphNum.Content != "" {
+				body += fmt.Sprintf("<h4>%s</h4>", html.EscapeString(para.ParagraphNum.Content))
+			}
+			
+			// Process paragraph sentences
+			if len(para.ParagraphSentence.Sentence) > 0 {
+				body += "<p>"
+				for sentenceIdx := range para.ParagraphSentence.Sentence {
+					sentence := &para.ParagraphSentence.Sentence[sentenceIdx]
+					// Use the new HTML() method which properly handles inline Ruby
+					body += sentence.HTML()
+				}
+				body += "</p>"
+			}
+			
+			// Process items within paragraph
+			if len(para.Item) > 0 {
+				body += "<ol>"
+				for itemIdx := range para.Item {
+					item := &para.Item[itemIdx]
+					body += "<li>"
+					
+					// Add item title if present
+					if item.ItemTitle != nil && item.ItemTitle.Content != "" {
+						body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(item.ItemTitle.Content))
+					}
+					
+					// Process item sentences
+					for sentIdx := range item.ItemSentence.Sentence {
+						sent := &item.ItemSentence.Sentence[sentIdx]
+						// Use the new HTML() method which properly handles inline Ruby
+						body += sent.HTML()
+					}
+					
+					// Process subitems if any
+					if len(item.Subitem1) > 0 {
+						body += "<ol type='i'>"
+						for subIdx := range item.Subitem1 {
+							subitem := &item.Subitem1[subIdx]
+							body += "<li>"
+							if subitem.Subitem1Title != nil {
+								body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(subitem.Subitem1Title.Content))
+							}
+							for subSentIdx := range subitem.Subitem1Sentence.Sentence {
+								subSent := &subitem.Subitem1Sentence.Sentence[subSentIdx]
+								// Use the new HTML() method which properly handles inline Ruby
+								body += subSent.HTML()
+							}
+							body += "</li>"
+						}
+						body += "</ol>"
+					}
+					
+					body += "</li>"
+				}
+				body += "</ol>"
+			}
+		}
+		// Use plain text for table of contents
+		articleTitlePlain := article.ArticleTitle.Content
+		if article.ArticleCaption != nil {
+			articleTitlePlain = fmt.Sprintf("%s %s", article.ArticleTitle.Content, article.ArticleCaption.Content)
+		}
+		_, subSectionErr := book.AddSubSection(parentFilename, body, articleTitlePlain, subFilename, "")
+		if subSectionErr != nil {
+			return fmt.Errorf("error adding article section: %w", subSectionErr)
+		}
 	}
+	return nil
+}
+
+// setupEPUBMetadata sets up the basic EPUB metadata
+func setupEPUBMetadata(book *epub.Epub, data *jplaw.Law) error {
+	book.SetAuthor(data.LawNum)
+	book.SetLang(string(data.Lang))
 
 	// Set description
 	eraStr := getEraString(data.Era)
@@ -169,45 +274,47 @@ func main() {
 	for i, chapter := range data.LawBody.MainProvision.Chapter {
 		chapterFilename := fmt.Sprintf("chapter-%d.xhtml", i)
 		chapterTitleHTML := processTextWithRuby(chapter.ChapterTitle.Content, chapter.ChapterTitle.Ruby)
-		body := fmt.Sprintf("<h2>%s</h2>", chapterTitleHTML)
+		body := fmt.Sprintf("%s<h2>%s</h2>", getRubyCSS(), chapterTitleHTML)
+
+		// Process Sections if any
+		if len(chapter.Section) > 0 {
+			body += "<div class='sections'>"
+			for sIdx, section := range chapter.Section {
+				sectionTitleHTML := processTextWithRuby(section.SectionTitle.Content, section.SectionTitle.Ruby)
+				body += fmt.Sprintf("<h3>%s</h3>", sectionTitleHTML)
+				// Add a note about articles in this section
+				if len(section.Article) > 0 {
+					body += fmt.Sprintf("<p>（%s から %s まで）</p>",
+						section.Article[0].ArticleTitle.Content,
+						section.Article[len(section.Article)-1].ArticleTitle.Content)
+				}
+				_ = sIdx // Mark as used
+			}
+			body += "</div>"
+		}
+
 		chapterFilename, addErr := book.AddSection(body, chapter.ChapterTitle.Content, chapterFilename, "")
 		if addErr != nil {
-			fmt.Printf("Error adding section: %v\n", addErr)
+			fmt.Printf("Error adding chapter: %v\n", addErr)
 			os.Exit(1)
 		}
-		for j := range chapter.Article {
-			article := &chapter.Article[j] // Use pointer to avoid copying
-			subFilename := fmt.Sprintf("article-%d-%d.xhtml", i, j)
-			articleTitleHTML := processTextWithRuby(article.ArticleTitle.Content, article.ArticleTitle.Ruby)
-			articleCaptionHTML := ""
-			if article.ArticleCaption != nil {
-				articleCaptionHTML = processTextWithRuby(article.ArticleCaption.Content, article.ArticleCaption.Ruby)
-			}
-			var articleTitleFull string
-			if articleCaptionHTML != "" {
-				articleTitleFull = fmt.Sprintf("%s %s", articleTitleHTML, articleCaptionHTML)
-			} else {
-				articleTitleFull = articleTitleHTML
-			}
-			body := fmt.Sprintf("<h3>%s</h3><ol>", articleTitleFull)
-			for paraIdx := range article.Paragraph {
-				para := &article.Paragraph[paraIdx] // Use pointer to avoid copying
-				for sentenceIdx := range para.ParagraphSentence.Sentence {
-					sentence := &para.ParagraphSentence.Sentence[sentenceIdx] // Use pointer to avoid copying
-					sentenceHTML := processTextWithRuby(sentence.Content, sentence.Ruby)
-					body += fmt.Sprintf("<li>%s</li>", sentenceHTML)
-				}
-			}
-			body += "</ol>"
-			// Use plain text for table of contents
-			articleTitlePlain := article.ArticleTitle.Content
-			if article.ArticleCaption != nil {
-				articleTitlePlain = fmt.Sprintf("%s %s", article.ArticleTitle.Content, article.ArticleCaption.Content)
-			}
-			_, subSectionErr := book.AddSubSection(chapterFilename, body, articleTitlePlain, subFilename, "")
-			if subSectionErr != nil {
-				fmt.Printf("Error adding section: %v\n", subSectionErr)
+
+		// Process direct articles under chapter
+		if len(chapter.Article) > 0 {
+			if err := processArticles(book, chapter.Article, chapterFilename, i, -1); err != nil {
+				fmt.Printf("Error processing chapter articles: %v\n", err)
 				os.Exit(1)
+			}
+		}
+
+		// Process articles within sections
+		for sIdx := range chapter.Section {
+			section := &chapter.Section[sIdx]
+			if len(section.Article) > 0 {
+				if err := processArticles(book, section.Article, chapterFilename, i, sIdx); err != nil {
+					fmt.Printf("Error processing section articles: %v\n", err)
+					os.Exit(1)
+				}
 			}
 		}
 	}

@@ -6,7 +6,7 @@ toolchain go1.23.11
 
 require (
 	github.com/go-shiori/go-epub v1.2.1
-	go.ngs.io/jplaw-xml v0.0.4
+	go.ngs.io/jplaw-xml v0.0.5
 )
 
 require (
