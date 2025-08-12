@@ -97,10 +97,7 @@ jobs:
         run: go build -v ./...
 
       - name: Build CLI tool
-        run: |
-          echo "Building CLI tool for ${{ matrix.os }}"
-          go build -v -o jplaw2epub${{ matrix.os == 'windows-latest' && '.exe' || '' }} ./cmd/jplaw2epub
-          echo "Build completed successfully"
+        run: go build -v -o jplaw2epub${{ matrix.os == 'windows-latest' && '.exe' || '' }} ./cmd/jplaw2epub
 
       - name: Verify binary
         run: ./jplaw2epub${{ matrix.os == 'windows-latest' && '.exe' || '' }} -h || true
