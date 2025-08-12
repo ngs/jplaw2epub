@@ -38,13 +38,84 @@ func processTextWithRuby(content string, rubies []jplaw.Ruby) string {
 	if len(rubies) == 0 {
 		return html.EscapeString(content)
 	}
-	
+
 	var result strings.Builder
 	if content != "" {
 		result.WriteString(html.EscapeString(content))
 	}
 	result.WriteString(processRubyElements(rubies))
 	return result.String()
+}
+
+// getEraString converts Era enum to Japanese string
+func getEraString(era jplaw.Era) string {
+	switch era {
+	case jplaw.EraMeiji:
+		return "明治"
+	case jplaw.EraTaisho:
+		return "大正"
+	case jplaw.EraShowa:
+		return "昭和"
+	case jplaw.EraHeisei:
+		return "平成"
+	case jplaw.EraReiwa:
+		return "令和"
+	default:
+		return ""
+	}
+}
+
+// setupEPUBMetadata sets up the basic EPUB metadata and CSS
+func setupEPUBMetadata(book *epub.Epub, data *jplaw.Law) error {
+	book.SetAuthor(data.LawNum)
+	book.SetLang(string(data.Lang))
+
+	// Add CSS for Ruby text rendering
+	rubyCSSContent := `
+/* Ruby text styling for Japanese phonetic guides */
+ruby {
+	ruby-align: center;
+	ruby-position: over;
+}
+
+rt {
+	font-size: 0.6em;
+	line-height: 1;
+	text-align: center;
+	color: #666;
+}
+
+/* Fallback for older EPUB readers */
+ruby > rt {
+	display: inline-block;
+	font-size: 0.6em;
+	line-height: 1;
+	text-align: center;
+	vertical-align: top;
+	color: #666;
+}
+
+/* Modern browsers and readers */
+@supports (ruby-position: over) {
+	ruby {
+		ruby-position: over;
+	}
+}
+`
+	_, err := book.AddCSS(rubyCSSContent, "ruby.css")
+	if err != nil {
+		return fmt.Errorf("error adding Ruby CSS: %w", err)
+	}
+
+	// Set description
+	eraStr := getEraString(data.Era)
+	description := fmt.Sprintf("公布日: %s %d年%d月%d日", eraStr, data.Year, data.PromulgateMonth, data.PromulgateDay)
+	description += fmt.Sprintf("\n法令番号: %s", data.LawNum)
+	lawTitleWithRuby := processTextWithRuby(data.LawBody.LawTitle.Content, data.LawBody.LawTitle.Ruby)
+	description += fmt.Sprintf("\n現行法令名: %s %s", lawTitleWithRuby, data.LawBody.LawTitle.Kana)
+	book.SetDescription(description)
+
+	return nil
 }
 
 func main() {
@@ -89,77 +160,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	book.SetAuthor(data.LawNum)
-	book.SetLang(string(data.Lang))
-	
-	// Add CSS for Ruby text rendering
-	rubyCSSContent := `
-/* Ruby text styling for Japanese phonetic guides */
-ruby {
-	ruby-align: center;
-	ruby-position: over;
-}
-
-rt {
-	font-size: 0.6em;
-	line-height: 1;
-	text-align: center;
-	color: #666;
-}
-
-/* Fallback for older EPUB readers */
-ruby > rt {
-	display: inline-block;
-	font-size: 0.6em;
-	line-height: 1;
-	text-align: center;
-	vertical-align: top;
-	color: #666;
-}
-
-/* Modern browsers and readers */
-@supports (ruby-position: over) {
-	ruby {
-		ruby-position: over;
-	}
-}
-`
-	rubyCSS, err := book.AddCSS(rubyCSSContent, "ruby.css")
-	if err != nil {
-		fmt.Printf("Error adding Ruby CSS: %v\n", err)
+	// Setup EPUB metadata and CSS
+	if setupErr := setupEPUBMetadata(book, &data); setupErr != nil {
+		fmt.Printf("Error setting up EPUB metadata: %v\n", setupErr)
 		os.Exit(1)
 	}
-	_ = rubyCSS // Mark as used
-	eraStr := ""
-	switch data.Era {
-	case jplaw.EraMeiji:
-		eraStr = "明治"
-	case jplaw.EraTaisho:
-		eraStr = "大正"
-	case jplaw.EraShowa:
-		eraStr = "昭和"
-	case jplaw.EraHeisei:
-		eraStr = "平成"
-	case jplaw.EraReiwa:
-		eraStr = "令和"
-	}
-	description := fmt.Sprintf("公布日: %s %d年%d月%d日", eraStr, data.Year, data.PromulgateMonth, data.PromulgateDay)
-	description += fmt.Sprintf("\n法令番号: %s", data.LawNum)
-	// Include Ruby text in description for better accessibility
-	lawTitleWithRuby := processTextWithRuby(data.LawBody.LawTitle.Content, data.LawBody.LawTitle.Ruby)
-	description += fmt.Sprintf("\n現行法令名: %s %s", lawTitleWithRuby, data.LawBody.LawTitle.Kana)
-	book.SetDescription(description)
 
 	for i, chapter := range data.LawBody.MainProvision.Chapter {
-		filename := fmt.Sprintf("chapter-%d.xhtml", i)
+		chapterFilename := fmt.Sprintf("chapter-%d.xhtml", i)
 		chapterTitleHTML := processTextWithRuby(chapter.ChapterTitle.Content, chapter.ChapterTitle.Ruby)
 		body := fmt.Sprintf("<h2>%s</h2>", chapterTitleHTML)
-		filename, err = book.AddSection(body, chapter.ChapterTitle.Content, filename, "")
-		if err != nil {
-			fmt.Printf("Error adding section: %v\n", err)
+		chapterFilename, addErr := book.AddSection(body, chapter.ChapterTitle.Content, chapterFilename, "")
+		if addErr != nil {
+			fmt.Printf("Error adding section: %v\n", addErr)
 			os.Exit(1)
 		}
-		for j, article := range chapter.Article {
+		for j := range chapter.Article {
+			article := &chapter.Article[j] // Use pointer to avoid copying
 			subFilename := fmt.Sprintf("article-%d-%d.xhtml", i, j)
 			articleTitleHTML := processTextWithRuby(article.ArticleTitle.Content, article.ArticleTitle.Ruby)
 			articleCaptionHTML := ""
@@ -173,9 +190,11 @@ ruby > rt {
 				articleTitleFull = articleTitleHTML
 			}
 			body := fmt.Sprintf("<h3>%s</h3><ol>", articleTitleFull)
-			for _, para := range article.Paragraph {
-				for _, sentense := range para.ParagraphSentence.Sentence {
-					sentenceHTML := processTextWithRuby(sentense.Content, sentense.Ruby)
+			for paraIdx := range article.Paragraph {
+				para := &article.Paragraph[paraIdx] // Use pointer to avoid copying
+				for sentenceIdx := range para.ParagraphSentence.Sentence {
+					sentence := &para.ParagraphSentence.Sentence[sentenceIdx] // Use pointer to avoid copying
+					sentenceHTML := processTextWithRuby(sentence.Content, sentence.Ruby)
 					body += fmt.Sprintf("<li>%s</li>", sentenceHTML)
 				}
 			}
@@ -185,18 +204,17 @@ ruby > rt {
 			if article.ArticleCaption != nil {
 				articleTitlePlain = fmt.Sprintf("%s %s", article.ArticleTitle.Content, article.ArticleCaption.Content)
 			}
-			_, err = book.AddSubSection(filename, body, articleTitlePlain, subFilename, "")
-			if err != nil {
-				fmt.Printf("Error adding section: %v\n", err)
+			_, subSectionErr := book.AddSubSection(chapterFilename, body, articleTitlePlain, subFilename, "")
+			if subSectionErr != nil {
+				fmt.Printf("Error adding section: %v\n", subSectionErr)
 				os.Exit(1)
 			}
 		}
 	}
 
-	err = book.Write(*destPath)
-	if err != nil {
-		fmt.Printf("Error writing epub: %v\n", err)
+	writeErr := book.Write(*destPath)
+	if writeErr != nil {
+		fmt.Printf("Error writing epub: %v\n", writeErr)
 		os.Exit(1)
 	}
-
 }
