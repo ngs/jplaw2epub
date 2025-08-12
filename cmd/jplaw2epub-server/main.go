@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -13,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/handler"
 	jplaw "go.ngs.io/jplaw-api-v2"
 	"go.ngs.io/jplaw2epub"
 )
@@ -39,6 +42,8 @@ func main() {
 	http.HandleFunc("/convert", convertHandler)
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/epubs/", epubsHandler)
+	http.HandleFunc("/graphql", graphqlHandler)
+	http.HandleFunc("/graphiql", graphiqlHandler)
 
 	log.Printf("Server starting on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
@@ -208,4 +213,60 @@ func epubsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Successfully converted law ID %s to EPUB (%d bytes)", lawID, buf.Len())
+}
+
+func graphqlHandler(w http.ResponseWriter, r *http.Request) {
+	// Handle CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	var query string
+	var variables map[string]interface{}
+
+	if r.Method == http.MethodGet {
+		query = r.URL.Query().Get("query")
+		variablesStr := r.URL.Query().Get("variables")
+		if variablesStr != "" {
+			json.Unmarshal([]byte(variablesStr), &variables)
+		}
+	} else if r.Method == http.MethodPost {
+		var body struct {
+			Query     string                 `json:"query"`
+			Variables map[string]interface{} `json:"variables"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		query = body.Query
+		variables = body.Variables
+	} else {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	result := graphql.Do(graphql.Params{
+		Schema:         SchemaFixed,
+		RequestString:  query,
+		VariableValues: variables,
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func graphiqlHandler(w http.ResponseWriter, r *http.Request) {
+	h := handler.New(&handler.Config{
+		Schema:   &SchemaFixed,
+		Pretty:   true,
+		GraphiQL: true,
+	})
+
+	h.ServeHTTP(w, r)
 }
