@@ -4,9 +4,9 @@ github.com/go-shiori/go-epub v1.2.1 h1:+K/WxrvmfFQY69cpryiObrT6X7WhkwpqhHY65AHs2
 github.com/go-shiori/go-epub v1.2.1/go.mod h1:3rCTODnigEgy2j3ksndClrGT9h/dcz3js9q4yPX7hf8=
 github.com/gofrs/uuid/v5 v5.3.0 h1:m0mUMr+oVYUdxpMLgSYCZiXe7PuVPnI94+OMeVBNedk=
 github.com/gofrs/uuid/v5 v5.3.0/go.mod h1:CDOjlDMVAtN56jqyRUZh58JT31Tiw7/oQyEXZV+9bD8=
-github.com/ngs/go-jplaw-xml v0.0.2 h1:SkgqgxWAPmJuFiVmDKjlVN9KtgihUfqxj6/qgYAFGvc=
-github.com/ngs/go-jplaw-xml v0.0.2/go.mod h1:2DGZqrKi4b+29K7KeWK8Kmyl21EEbC9AYBXJmdV66zA=
 github.com/vincent-petithory/dataurl v1.0.0 h1:cXw+kPto8NLuJtlMsI152irrVw9fRDX8AbShPRpg2CI=
 github.com/vincent-petithory/dataurl v1.0.0/go.mod h1:FHafX5vmDzyP+1CQATJn7WFKc9CvnvxyvZy6I1MrG/U=
+go.ngs.io/jplaw-xml v0.0.5 h1:gUMjnhOvQFLSfn8a1rRQj/4fl38DIBFaRbfHEf+mkg8=
+go.ngs.io/jplaw-xml v0.0.5/go.mod h1:vXmxPvz6El6/SIG98nYUC8bEhjGvJz608RQOPktLNs4=
 golang.org/x/net v0.34.0 h1:Mb7Mrk043xzHgnRM88suvJFwzVrRfHEHJEl5/71CKw0=
 golang.org/x/net v0.34.0/go.mod h1:di0qlW3YNM5oh6GqDGQr92MyTozJPmybPK4Ev/Gm31k=

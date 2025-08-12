@@ -1,0 +1,6 @@
+/jplaw2epub
+
+# Generated EPUB files
+*.epub
+
+coverage.out
