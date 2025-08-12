@@ -13,6 +13,8 @@ import (
 	"go.ngs.io/jplaw-xml"
 )
 
+// Removed baseCSS - list styles are now determined dynamically
+
 // processRubyElements converts Ruby elements to HTML ruby tags
 func processRubyElements(rubies []jplaw.Ruby) string {
 	var result strings.Builder
@@ -33,7 +35,7 @@ func processRubyElements(rubies []jplaw.Ruby) string {
 	return result.String()
 }
 
-// processTextWithRuby processes mixed content (text + Ruby elements)  
+// processTextWithRuby processes mixed content (text + Ruby elements)
 // Note: Due to XML parsing limitations, Ruby elements that were inline in the original
 // XML are extracted separately, losing their position. As a workaround, we append them.
 func processTextWithRuby(content string, rubies []jplaw.Ruby) string {
@@ -47,11 +49,113 @@ func processTextWithRuby(content string, rubies []jplaw.Ruby) string {
 	if content != "" {
 		result.WriteString(html.EscapeString(content))
 	}
-	
+
 	// Add Ruby elements (they will appear at the end of the text)
 	// In the case of "較(こう)正", this will show the Ruby annotation
 	result.WriteString(processRubyElements(rubies))
 	return result.String()
+}
+
+// isListNumber checks if the text is just a Japanese list number
+func isListNumber(text string) bool {
+	// List numbers that should be skipped
+	listNumbers := []string{
+		// CJK ideographic numbers
+		"一", "二", "三", "四", "五", "六", "七", "八", "九", "十",
+		"十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十",
+		// Katakana iroha
+		"イ", "ロ", "ハ", "ニ", "ホ", "ヘ", "ト", "チ", "リ", "ヌ",
+		"ル", "ヲ", "ワ", "カ", "ヨ", "タ", "レ", "ソ", "ツ", "ネ",
+		// Full-width Arabic numerals
+		"１", "２", "３", "４", "５", "６", "７", "８", "９", "１０",
+		"１１", "１２", "１３", "１４", "１５", "１６", "１７", "１８", "１９", "２０",
+	}
+	
+	for _, num := range listNumbers {
+		if text == num {
+			return true
+		}
+	}
+	return false
+}
+
+// getListStyleType determines the CSS list-style-type based on the item titles
+func getListStyleType(titles []string) string {
+	if len(titles) == 0 {
+		return ""
+	}
+	
+	// Check first title to determine the pattern
+	first := titles[0]
+	
+	// CJK ideographic (一, 二, 三...)
+	cjkNumbers := []string{"一", "二", "三", "四", "五", "六", "七", "八", "九", "十"}
+	for _, num := range cjkNumbers {
+		if first == num {
+			return "cjk-ideographic"
+		}
+	}
+	
+	// Katakana iroha (イ, ロ, ハ...)
+	katakanaIroha := []string{"イ", "ロ", "ハ", "ニ", "ホ", "ヘ", "ト", "チ", "リ", "ヌ"}
+	for _, kana := range katakanaIroha {
+		if first == kana {
+			return "katakana-iroha"
+		}
+	}
+	
+	// Hiragana iroha (い, ろ, は...)
+	hiraganaIroha := []string{"い", "ろ", "は", "に", "ほ", "へ", "と", "ち", "り", "ぬ"}
+	for _, kana := range hiraganaIroha {
+		if first == kana {
+			return "hiragana-iroha"
+		}
+	}
+	
+	// Full-width Arabic numerals (１, ２, ３...)
+	fullWidthNumbers := []string{"１", "２", "３", "４", "５", "６", "７", "８", "９"}
+	for _, num := range fullWidthNumbers {
+		if first == num {
+			return "decimal"
+		}
+	}
+	
+	// Half-width Arabic numerals (1, 2, 3...)
+	if strings.HasPrefix(first, "1") {
+		return "decimal"
+	}
+	
+	// Parenthesized numbers (（１）, （２）...)
+	if strings.HasPrefix(first, "（") && strings.HasSuffix(first, "）") {
+		return "decimal"
+	}
+	
+	// Default
+	return "disc"
+}
+
+// trimListPrefix removes Japanese number prefixes from the beginning of list item text
+func trimListPrefix(text string) string {
+	// Common list prefixes to remove
+	prefixes := []string{
+		// CJK ideographic numbers (一, 二, 三, etc.)
+		"一　", "二　", "三　", "四　", "五　", "六　", "七　", "八　", "九　", "十　",
+		// Katakana iroha (イ, ロ, ハ, etc.)
+		"イ　", "ロ　", "ハ　", "ニ　", "ホ　", "ヘ　", "ト　", "チ　", "リ　", "ヌ　", 
+		"ル　", "ヲ　", "ワ　", "カ　", "ヨ　", "タ　", "レ　", "ソ　", "ツ　", "ネ　",
+		// With different spacing
+		"一 ", "二 ", "三 ", "四 ", "五 ", "六 ", "七 ", "八 ", "九 ", "十 ",
+		"イ ", "ロ ", "ハ ", "ニ ", "ホ ", "ヘ ", "ト ", "チ ", "リ ", "ヌ ",
+		"ル ", "ヲ ", "ワ ", "カ ", "ヨ", "タ", "レ", "ソ", "ツ", "ネ",
+	}
+	
+	trimmed := text
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(trimmed, prefix) {
+			return strings.TrimPrefix(trimmed, prefix)
+		}
+	}
+	return trimmed
 }
 
 // getEraString converts Era enum to Japanese string
@@ -70,41 +174,6 @@ func getEraString(era jplaw.Era) string {
 	default:
 		return ""
 	}
-}
-
-// getRubyCSS returns CSS for Ruby text rendering as a style tag
-func getRubyCSS() string {
-	return `<style type="text/css">
-/* Ruby text styling for Japanese phonetic guides */
-ruby {
-	ruby-align: center;
-	ruby-position: over;
-}
-
-rt {
-	font-size: 0.6em;
-	line-height: 1;
-	text-align: center;
-	color: #666;
-}
-
-/* Fallback for older EPUB readers */
-ruby > rt {
-	display: inline-block;
-	font-size: 0.6em;
-	line-height: 1;
-	text-align: center;
-	vertical-align: top;
-	color: #666;
-}
-
-/* Modern browsers and readers */
-@supports (ruby-position: over) {
-	ruby {
-		ruby-position: over;
-	}
-}
-</style>`
 }
 
 // processArticles processes a slice of articles and adds them to the EPUB
@@ -129,70 +198,223 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 		} else {
 			articleTitleFull = articleTitleHTML
 		}
-		body := fmt.Sprintf("%s<h3>%s</h3>", getRubyCSS(), articleTitleFull)
+		body := fmt.Sprintf("<h3>%s</h3>", articleTitleFull)
+
+		// Group paragraphs with Num attribute into lists
+		var inList bool
 		
-		// Process paragraphs
 		for paraIdx := range article.Paragraph {
 			para := &article.Paragraph[paraIdx]
 			
-			// Add paragraph number if present
-			if para.ParagraphNum.Content != "" {
-				body += fmt.Sprintf("<h4>%s</h4>", html.EscapeString(para.ParagraphNum.Content))
-			}
-			
-			// Process paragraph sentences
-			if len(para.ParagraphSentence.Sentence) > 0 {
-				body += "<p>"
-				for sentenceIdx := range para.ParagraphSentence.Sentence {
-					sentence := &para.ParagraphSentence.Sentence[sentenceIdx]
-					// Use the new HTML() method which properly handles inline Ruby
-					body += sentence.HTML()
+			// Check if this paragraph should be in a list (has Num > 0)
+			if para.Num > 0 {
+				// Start a new list if not in one
+				if !inList {
+					// Determine list style from paragraph numbers if possible
+					var paraNumTitles []string
+					for i := paraIdx; i < len(article.Paragraph) && article.Paragraph[i].Num > 0; i++ {
+						paraNumTitles = append(paraNumTitles, article.Paragraph[i].ParagraphNum.Content)
+					}
+					listStyle := getListStyleType(paraNumTitles)
+					if listStyle != "" && listStyle != "disc" {
+						body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, listStyle)
+					} else {
+						body += "<ol>"
+					}
+					inList = true
 				}
-				body += "</p>"
-			}
-			
-			// Process items within paragraph
-			if len(para.Item) > 0 {
-				body += "<ol>"
-				for itemIdx := range para.Item {
-					item := &para.Item[itemIdx]
-					body += "<li>"
-					
-					// Add item title if present
-					if item.ItemTitle != nil && item.ItemTitle.Content != "" {
-						body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(item.ItemTitle.Content))
+				
+				body += "<li>"
+				
+				// Add paragraph number if present (as a heading within the list item)
+				if para.ParagraphNum.Content != "" {
+					// Skip if it's just a number that matches the list style
+					if !isListNumber(para.ParagraphNum.Content) {
+						body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(para.ParagraphNum.Content))
 					}
-					
-					// Process item sentences
-					for sentIdx := range item.ItemSentence.Sentence {
-						sent := &item.ItemSentence.Sentence[sentIdx]
-						// Use the new HTML() method which properly handles inline Ruby
-						body += sent.HTML()
+				}
+				
+				// Process paragraph sentences
+				if len(para.ParagraphSentence.Sentence) > 0 {
+					for sentenceIdx := range para.ParagraphSentence.Sentence {
+						sentence := &para.ParagraphSentence.Sentence[sentenceIdx]
+						body += sentence.HTML()
 					}
-					
-					// Process subitems if any
-					if len(item.Subitem1) > 0 {
-						body += "<ol type='i'>"
-						for subIdx := range item.Subitem1 {
-							subitem := &item.Subitem1[subIdx]
-							body += "<li>"
-							if subitem.Subitem1Title != nil {
-								body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(subitem.Subitem1Title.Content))
-							}
-							for subSentIdx := range subitem.Subitem1Sentence.Sentence {
-								subSent := &subitem.Subitem1Sentence.Sentence[subSentIdx]
-								// Use the new HTML() method which properly handles inline Ruby
-								body += subSent.HTML()
-							}
-							body += "</li>"
+				}
+				
+				// Process items within paragraph
+				if len(para.Item) > 0 {
+					// Collect item titles to determine list style
+					var itemTitles []string
+					for _, item := range para.Item {
+						if item.ItemTitle != nil {
+							itemTitles = append(itemTitles, item.ItemTitle.Content)
 						}
-						body += "</ol>"
+					}
+					itemListStyle := getListStyleType(itemTitles)
+					
+					if itemListStyle != "" && itemListStyle != "disc" {
+						body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, itemListStyle)
+					} else {
+						body += "<ol>"
 					}
 					
-					body += "</li>"
+					for itemIdx := range para.Item {
+						item := &para.Item[itemIdx]
+						body += "<li>"
+						
+						// Add item title if present (skip if it's just a list number)
+						if item.ItemTitle != nil && item.ItemTitle.Content != "" {
+							if !isListNumber(item.ItemTitle.Content) {
+								body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(item.ItemTitle.Content))
+							}
+						}
+						
+						// Process item sentences
+						for sentIdx := range item.ItemSentence.Sentence {
+							sent := &item.ItemSentence.Sentence[sentIdx]
+							body += sent.HTML()
+						}
+						
+						// Process Subitem1 if any
+						if len(item.Subitem1) > 0 {
+							// Collect subitem titles to determine list style
+							var subitemTitles []string
+							for _, subitem := range item.Subitem1 {
+								if subitem.Subitem1Title != nil {
+									subitemTitles = append(subitemTitles, subitem.Subitem1Title.Content)
+								}
+							}
+							subitemListStyle := getListStyleType(subitemTitles)
+							
+							if subitemListStyle != "" && subitemListStyle != "disc" {
+								body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, subitemListStyle)
+							} else {
+								body += "<ol>"
+							}
+							
+							for subIdx := range item.Subitem1 {
+								subitem := &item.Subitem1[subIdx]
+								body += "<li>"
+								if subitem.Subitem1Title != nil && subitem.Subitem1Title.Content != "" {
+									if !isListNumber(subitem.Subitem1Title.Content) {
+										body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(subitem.Subitem1Title.Content))
+									}
+								}
+								for subSentIdx := range subitem.Subitem1Sentence.Sentence {
+									subSent := &subitem.Subitem1Sentence.Sentence[subSentIdx]
+									body += subSent.HTML()
+								}
+								
+								// Process Subitem2 if any
+								if len(subitem.Subitem2) > 0 {
+									// Collect subitem2 titles to determine list style
+									var subitem2Titles []string
+									for _, subitem2 := range subitem.Subitem2 {
+										if subitem2.Subitem2Title != nil {
+											subitem2Titles = append(subitem2Titles, subitem2.Subitem2Title.Content)
+										}
+									}
+									subitem2ListStyle := getListStyleType(subitem2Titles)
+									
+									if subitem2ListStyle != "" && subitem2ListStyle != "disc" {
+										body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, subitem2ListStyle)
+									} else {
+										body += "<ol>"
+									}
+									
+									for sub2Idx := range subitem.Subitem2 {
+										subitem2 := &subitem.Subitem2[sub2Idx]
+										body += "<li>"
+										if subitem2.Subitem2Title != nil && subitem2.Subitem2Title.Content != "" {
+											if !isListNumber(subitem2.Subitem2Title.Content) {
+												body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(subitem2.Subitem2Title.Content))
+											}
+										}
+										for sub2SentIdx := range subitem2.Subitem2Sentence.Sentence {
+											sub2Sent := &subitem2.Subitem2Sentence.Sentence[sub2SentIdx]
+											body += sub2Sent.HTML()
+										}
+										body += "</li>"
+									}
+									body += "</ol>"
+								}
+								
+								body += "</li>"
+							}
+							body += "</ol>"
+						}
+						
+						body += "</li>"
+					}
+					body += "</ol>"
 				}
-				body += "</ol>"
+				
+				body += "</li>"
+				
+			} else {
+				// Close list if we were in one
+				if inList {
+					body += "</ol>"
+					inList = false
+				}
+				
+				// Process as regular paragraph (not in a list)
+				if para.ParagraphNum.Content != "" {
+					body += fmt.Sprintf("<h4>%s</h4>", html.EscapeString(para.ParagraphNum.Content))
+				}
+				
+				if len(para.ParagraphSentence.Sentence) > 0 {
+					body += "<p>"
+					for sentenceIdx := range para.ParagraphSentence.Sentence {
+						sentence := &para.ParagraphSentence.Sentence[sentenceIdx]
+						body += sentence.HTML()
+					}
+					body += "</p>"
+				}
+				
+				// Process items (if not in numbered paragraph)
+				if len(para.Item) > 0 {
+					// Similar item processing as above
+					var itemTitles []string
+					for _, item := range para.Item {
+						if item.ItemTitle != nil {
+							itemTitles = append(itemTitles, item.ItemTitle.Content)
+						}
+					}
+					itemListStyle := getListStyleType(itemTitles)
+					
+					if itemListStyle != "" && itemListStyle != "disc" {
+						body += fmt.Sprintf(`<ol style="list-style-type: %s;">`, itemListStyle)
+					} else {
+						body += "<ol>"
+					}
+					
+					for itemIdx := range para.Item {
+						item := &para.Item[itemIdx]
+						body += "<li>"
+						
+						if item.ItemTitle != nil && item.ItemTitle.Content != "" {
+							if !isListNumber(item.ItemTitle.Content) {
+								body += fmt.Sprintf("<strong>%s</strong> ", html.EscapeString(item.ItemTitle.Content))
+							}
+						}
+						
+						for sentIdx := range item.ItemSentence.Sentence {
+							sent := &item.ItemSentence.Sentence[sentIdx]
+							body += sent.HTML()
+						}
+						
+						body += "</li>"
+					}
+					body += "</ol>"
+				}
 			}
+		}
+		
+		// Close list if still open at the end
+		if inList {
+			body += "</ol>"
 		}
 		// Use plain text for table of contents
 		articleTitlePlain := article.ArticleTitle.Content
@@ -274,7 +496,7 @@ func main() {
 	for i, chapter := range data.LawBody.MainProvision.Chapter {
 		chapterFilename := fmt.Sprintf("chapter-%d.xhtml", i)
 		chapterTitleHTML := processTextWithRuby(chapter.ChapterTitle.Content, chapter.ChapterTitle.Ruby)
-		body := fmt.Sprintf("%s<h2>%s</h2>", getRubyCSS(), chapterTitleHTML)
+		body := fmt.Sprintf("<h2>%s</h2>", chapterTitleHTML)
 
 		// Process Sections if any
 		if len(chapter.Section) > 0 {
