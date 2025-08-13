@@ -153,16 +153,16 @@ strong {
 func AddCSSToEPUB(book *epub.Epub) error {
 	// Create a data URL for the CSS content
 	dataURL := fmt.Sprintf("data:text/css;base64,%s", base64.StdEncoding.EncodeToString([]byte(epubCSS)))
-	
+
 	// Add CSS to EPUB using data URL
 	cssPath, err := book.AddCSS(dataURL, "styles.css")
 	if err != nil {
 		return fmt.Errorf("adding CSS to EPUB: %w", err)
 	}
-	
+
 	// The CSS file will be automatically linked to all HTML files
 	// by the go-epub library
 	_ = cssPath // CSS path for reference if needed
-	
+
 	return nil
 }

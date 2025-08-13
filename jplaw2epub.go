@@ -189,10 +189,55 @@ func processChaptersWithOptions(book *epub.Epub, data *jplaw.Law, opts *EPUBOpti
 		}
 	}
 
-	// Process chapters
-	for i := range data.LawBody.MainProvision.Chapter {
-		if err := processChapterWithImages(book, &data.LawBody.MainProvision.Chapter[i], i, imgProc); err != nil {
-			return err
+	// Process main provision content based on what's available
+	mainProv := &data.LawBody.MainProvision
+	
+	// Check if there are chapters
+	if len(mainProv.Chapter) > 0 {
+		// Process chapters
+		for i := range mainProv.Chapter {
+			if err := processChapterWithImages(book, &mainProv.Chapter[i], i, imgProc); err != nil {
+				return err
+			}
+		}
+	} else if len(mainProv.Article) > 0 || len(mainProv.Paragraph) > 0 {
+		// No chapters, process direct articles or paragraphs
+		mainFilename := "main-content.xhtml"
+		body := ""
+		
+		// Process direct paragraphs
+		if len(mainProv.Paragraph) > 0 {
+			body += processParagraphsWithImages(mainProv.Paragraph, imgProc)
+		}
+		
+		// Process direct articles
+		if len(mainProv.Article) > 0 {
+			for _, article := range mainProv.Article {
+				articleTitle := buildArticleTitle(&article)
+				body += buildArticleBodyWithImages(&article, articleTitle, imgProc)
+			}
+		}
+		
+		// Add the main content as a section
+		if body != "" {
+			_, err := book.AddSection(body, "本文", mainFilename, "")
+			if err != nil {
+				return fmt.Errorf("adding main content: %w", err)
+			}
+		}
+	}
+
+	// Process AppdxNote (appendix notes)
+	if len(data.LawBody.AppdxNote) > 0 {
+		if err := processAppdxNotes(book, data.LawBody.AppdxNote, imgProc); err != nil {
+			return fmt.Errorf("processing appendix notes: %w", err)
+		}
+	}
+
+	// Process AppdxTable (appendix tables)
+	if len(data.LawBody.AppdxTable) > 0 {
+		if err := processAppdxTables(book, data.LawBody.AppdxTable); err != nil {
+			return fmt.Errorf("processing appendix tables: %w", err)
 		}
 	}
 

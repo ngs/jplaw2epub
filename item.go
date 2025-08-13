@@ -48,6 +48,19 @@ func processItemWithImages(item *jplaw.Item, imgProc *ImageProcessor) string {
 	for i := range item.ItemSentence.Sentence {
 		body += item.ItemSentence.Sentence[i].HTML()
 	}
+	
+	// Process columns if present
+	for i := range item.ItemSentence.Column {
+		column := &item.ItemSentence.Column[i]
+		// Add column content
+		for j := range column.Sentence {
+			body += column.Sentence[j].HTML()
+		}
+		// Add line break if specified
+		if column.LineBreak {
+			body += "<br/>"
+		}
+	}
 
 	// Process FigStruct if present
 	if len(item.FigStruct) > 0 {
