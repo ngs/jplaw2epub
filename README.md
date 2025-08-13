@@ -83,6 +83,151 @@ Add to your Go project:
 go get go.ngs.io/jplaw2epub
 ```
 
+## Web API Server
+
+A web API server is available that provides REST and GraphQL endpoints for converting Japanese law documents to EPUB format.
+
+### Installation
+
+```sh
+go install go.ngs.io/jplaw2epub/cmd/jplaw2epub-server@latest
+```
+
+Or build from source:
+
+```sh
+go build -o jplaw2epub-server ./cmd/jplaw2epub-server
+```
+
+### Running the Server
+
+```sh
+# Use automatic port selection
+jplaw2epub-server
+
+# Specify port via flag
+jplaw2epub-server -port 8080
+
+# Specify port via environment variable
+PORT=8080 jplaw2epub-server
+```
+
+### API Endpoints
+
+#### REST API
+
+- **POST /convert** - Convert XML to EPUB
+  ```sh
+  curl -X POST -H "Content-Type: application/xml" \
+    --data-binary @law.xml \
+    http://localhost:8080/convert -o output.epub
+  ```
+
+- **GET /epubs/{law_id}** - Get EPUB by law ID (uses jplaw-api-v2)
+  ```sh
+  curl http://localhost:8080/epubs/325AC0000000131 -o radio_act.epub
+  ```
+
+- **GET /health** - Health check endpoint
+
+#### GraphQL API
+
+The server includes a GraphQL API powered by [gqlgen](https://gqlgen.com/) for querying Japanese law data.
+
+- **POST/GET /graphql** - GraphQL endpoint
+- **GET /graphiql** - Interactive GraphQL playground
+
+##### GraphQL Schema
+
+The GraphQL implementation is located in `/graphql/` directory with:
+- `schema.graphqls` - GraphQL schema definition
+- `gqlgen.yml` - gqlgen configuration
+- Generated resolvers and models
+
+##### Example Queries
+
+Search laws by category and type:
+```graphql
+query {
+  laws(
+    categoryCode: [CONSTITUTION, CRIMINAL]
+    lawType: [ACT]
+    limit: 5
+  ) {
+    totalCount
+    laws {
+      lawInfo {
+        lawId
+        lawNum
+        lawType
+        promulgationDate
+      }
+      revisionInfo {
+        lawTitle
+        lawTitleKana
+      }
+    }
+  }
+}
+```
+
+Get law revisions:
+```graphql
+query {
+  revisions(lawId: "325AC0000000131") {
+    lawInfo {
+      lawNum
+      promulgationDate
+    }
+    revisions {
+      amendmentLawTitle
+      amendmentEnforcementDate
+      currentRevisionStatus
+    }
+  }
+}
+```
+
+Keyword search:
+```graphql
+query {
+  keyword(keyword: "無線", limit: 3) {
+    totalCount
+    items {
+      lawInfo {
+        lawId
+      }
+      revisionInfo {
+        lawTitle
+      }
+      sentences {
+        text
+        position
+      }
+    }
+  }
+}
+```
+
+### GraphQL Development
+
+To regenerate GraphQL code after schema changes:
+
+```sh
+cd graphql
+gqlgen generate
+```
+
+The GraphQL implementation uses:
+- Schema-first approach with type-safe code generation
+- Direct binding to jplaw-api-v2 types
+- Enum support for all law categories and types
+- Custom converters for enum value mapping
+
+### Docker Deployment
+
+See [cmd/jplaw2epub-server/README.md](cmd/jplaw2epub-server/README.md) for Docker and Google Cloud Run deployment instructions.
+
 ## Features
 
 - Support for Ruby (ルビ) annotations for Japanese phonetic guides

@@ -6,7 +6,7 @@ Web API server that converts Japanese Law XML to EPUB format and provides GraphQ
 
 - POST `/convert` - Accepts XML data and returns EPUB file
 - GET `/epubs/{law_id}` - Get EPUB file for a specific law ID
-- POST `/graphql` - GraphQL API endpoint for law queries
+- POST/GET `/graphql` - GraphQL API endpoint for law queries
 - GET `/graphiql` - Interactive GraphQL playground
 - GET `/health` - Health check endpoint
 

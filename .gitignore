@@ -1,4 +1,5 @@
 /jplaw2epub
+/jplaw2epub-server
 
 # Generated EPUB files
 *.epub
