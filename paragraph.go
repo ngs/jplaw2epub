@@ -3,6 +3,7 @@ package jplaw2epub
 import (
 	"fmt"
 	"html"
+	"strings"
 
 	"go.ngs.io/jplaw-xml"
 )
@@ -77,6 +78,11 @@ func (p *paragraphProcessor) processNumberedParagraph(para *jplaw.Paragraph, idx
 		p.body += ProcessStyleStructs(para.StyleStruct, p.imageProcessor)
 	}
 
+	// Process List if present
+	if len(para.List) > 0 {
+		p.body += processLists(para.List)
+	}
+
 	p.body += htmlLIEnd
 }
 
@@ -124,6 +130,142 @@ func (p *paragraphProcessor) processRegularParagraph(para *jplaw.Paragraph) {
 	if len(para.StyleStruct) > 0 {
 		p.body += ProcessStyleStructs(para.StyleStruct, p.imageProcessor)
 	}
+
+	// Process List if present
+	if len(para.List) > 0 {
+		p.body += processLists(para.List)
+	}
+}
+
+// processLists processes List elements
+func processLists(lists []jplaw.List) string {
+	if len(lists) == 0 {
+		return ""
+	}
+
+	var body strings.Builder
+	body.WriteString(`<ul class="law-list">`)
+
+	for _, list := range lists {
+		body.WriteString("<li>")
+
+		// Process ListSentence
+		for i := range list.ListSentence.Sentence {
+			body.WriteString(list.ListSentence.Sentence[i].HTML())
+		}
+
+		// Process Columns if present
+		for i := range list.ListSentence.Column {
+			body.WriteString(processColumnElement(&list.ListSentence.Column[i]))
+		}
+
+		// Process Sublist1 if present
+		if len(list.Sublist1) > 0 {
+			body.WriteString(processSublist1(list.Sublist1))
+		}
+
+		body.WriteString("</li>")
+	}
+
+	body.WriteString("</ul>")
+	return body.String()
+}
+
+// processSublist1 processes Sublist1 elements
+func processSublist1(sublists []jplaw.Sublist1) string {
+	if len(sublists) == 0 {
+		return ""
+	}
+
+	var body strings.Builder
+	body.WriteString(`<ul class="law-sublist1">`)
+
+	for _, sublist := range sublists {
+		body.WriteString("<li>")
+
+		// Process Sublist1Sentence
+		for i := range sublist.Sublist1Sentence.Sentence {
+			body.WriteString(sublist.Sublist1Sentence.Sentence[i].HTML())
+		}
+
+		// Process Columns if present
+		for i := range sublist.Sublist1Sentence.Column {
+			body.WriteString(processColumnElement(&sublist.Sublist1Sentence.Column[i]))
+		}
+
+		// Process Sublist2 if present (recursive structure)
+		if len(sublist.Sublist2) > 0 {
+			body.WriteString(processSublist2(sublist.Sublist2))
+		}
+
+		body.WriteString("</li>")
+	}
+
+	body.WriteString("</ul>")
+	return body.String()
+}
+
+// processSublist2 processes Sublist2 elements
+func processSublist2(sublists []jplaw.Sublist2) string {
+	if len(sublists) == 0 {
+		return ""
+	}
+
+	var body strings.Builder
+	body.WriteString(`<ul class="law-sublist2">`)
+
+	for _, sublist := range sublists {
+		body.WriteString("<li>")
+
+		// Process Sublist2Sentence
+		for i := range sublist.Sublist2Sentence.Sentence {
+			body.WriteString(sublist.Sublist2Sentence.Sentence[i].HTML())
+		}
+
+		// Process Columns if present
+		for i := range sublist.Sublist2Sentence.Column {
+			body.WriteString(processColumnElement(&sublist.Sublist2Sentence.Column[i]))
+		}
+
+		// Process Sublist3 if present (recursive structure)
+		if len(sublist.Sublist3) > 0 {
+			body.WriteString(processSublist3(sublist.Sublist3))
+		}
+
+		body.WriteString("</li>")
+	}
+
+	body.WriteString("</ul>")
+	return body.String()
+}
+
+// processSublist3 processes Sublist3 elements
+func processSublist3(sublists []jplaw.Sublist3) string {
+	if len(sublists) == 0 {
+		return ""
+	}
+
+	var body strings.Builder
+	body.WriteString(`<ul class="law-sublist3">`)
+
+	for _, sublist := range sublists {
+		body.WriteString("<li>")
+
+		// Process Sublist3Sentence
+		for i := range sublist.Sublist3Sentence.Sentence {
+			body.WriteString(sublist.Sublist3Sentence.Sentence[i].HTML())
+		}
+
+		// Process Columns if present
+		for i := range sublist.Sublist3Sentence.Column {
+			body.WriteString(processColumnElement(&sublist.Sublist3Sentence.Column[i]))
+		}
+
+		body.WriteString("</li>")
+	}
+
+	body.WriteString("</ul>")
+	return body.String()
 }
 
 // startNumberedList starts a new numbered list with appropriate style

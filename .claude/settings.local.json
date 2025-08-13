@@ -28,7 +28,10 @@
       "Bash(/Users/ngs/go/1.23.12/bin/goreleaser check)",
       "Bash(unzip:*)",
       "Bash(gh pr view:*)",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(chmod:*)",
+      "Bash(./check_all_xml.sh:*)",
+      "Bash(./analyze_xml_elements.sh:*)"
     ],
     "deny": [],
     "ask": []

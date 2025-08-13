@@ -268,6 +268,13 @@ func processChaptersWithOptions(book *epub.Epub, data *jplaw.Law, opts *EPUBOpti
 		}
 	}
 
+	// Process AppdxFormat (appendix formats)
+	if len(data.LawBody.AppdxFormat) > 0 {
+		if err := processAppdxFormats(book, data.LawBody.AppdxFormat, imgProc); err != nil {
+			return fmt.Errorf("processing appendix formats: %w", err)
+		}
+	}
+
 	// Process SupplProvision (supplementary provisions)
 	if len(data.LawBody.SupplProvision) > 0 {
 		if err := processSupplProvisions(book, data.LawBody.SupplProvision, imgProc); err != nil {
