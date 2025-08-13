@@ -9,8 +9,13 @@ import (
 
 // processArticles processes a slice of articles and adds them to the EPUB
 func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename string, chapterIdx, sectionIdx int) error {
+	return processArticlesWithImages(book, articles, parentFilename, chapterIdx, sectionIdx, nil)
+}
+
+// processArticlesWithImages processes articles with image support
+func processArticlesWithImages(book *epub.Epub, articles []jplaw.Article, parentFilename string, chapterIdx, sectionIdx int, imgProc *ImageProcessor) error {
 	for j := range articles {
-		if err := processArticle(book, &articles[j], parentFilename, chapterIdx, sectionIdx, j); err != nil {
+		if err := processArticleWithImages(book, &articles[j], parentFilename, chapterIdx, sectionIdx, j, imgProc); err != nil {
 			return err
 		}
 	}
@@ -19,9 +24,14 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 
 // processArticle processes a single article
 func processArticle(book *epub.Epub, article *jplaw.Article, parentFilename string, chapterIdx, sectionIdx, articleIdx int) error {
+	return processArticleWithImages(book, article, parentFilename, chapterIdx, sectionIdx, articleIdx, nil)
+}
+
+// processArticleWithImages processes a single article with image support
+func processArticleWithImages(book *epub.Epub, article *jplaw.Article, parentFilename string, chapterIdx, sectionIdx, articleIdx int, imgProc *ImageProcessor) error {
 	subFilename := buildArticleFilename(chapterIdx, sectionIdx, articleIdx)
 	articleTitle := buildArticleTitle(article)
-	body := buildArticleBody(article, articleTitle)
+	body := buildArticleBodyWithImages(article, articleTitle, imgProc)
 
 	articleTitlePlain := getArticleTitlePlain(article)
 	_, err := book.AddSubSection(parentFilename, body, articleTitlePlain, subFilename, "")
@@ -41,8 +51,13 @@ func buildArticleFilename(chapterIdx, sectionIdx, articleIdx int) string {
 
 // buildArticleBody builds the HTML body for an article
 func buildArticleBody(article *jplaw.Article, articleTitle string) string {
+	return buildArticleBodyWithImages(article, articleTitle, nil)
+}
+
+// buildArticleBodyWithImages builds the HTML body for an article with image support
+func buildArticleBodyWithImages(article *jplaw.Article, articleTitle string, imgProc *ImageProcessor) string {
 	body := fmt.Sprintf("<h3>%s</h3>", articleTitle)
-	body += processParagraphs(article.Paragraph)
+	body += processParagraphsWithImages(article.Paragraph, imgProc)
 	return body
 }
 
