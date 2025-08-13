@@ -256,7 +256,7 @@ func processChaptersWithOptions(book *epub.Epub, data *jplaw.Law, opts *EPUBOpti
 
 	// Process AppdxTable (appendix tables)
 	if len(data.LawBody.AppdxTable) > 0 {
-		if err := processAppdxTables(book, data.LawBody.AppdxTable); err != nil {
+		if err := processAppdxTables(book, data.LawBody.AppdxTable, imgProc); err != nil {
 			return fmt.Errorf("processing appendix tables: %w", err)
 		}
 	}
@@ -265,6 +265,13 @@ func processChaptersWithOptions(book *epub.Epub, data *jplaw.Law, opts *EPUBOpti
 	if len(data.LawBody.AppdxStyle) > 0 {
 		if err := processAppdxStyles(book, data.LawBody.AppdxStyle, imgProc); err != nil {
 			return err
+		}
+	}
+
+	// Process SupplProvision (supplementary provisions)
+	if len(data.LawBody.SupplProvision) > 0 {
+		if err := processSupplProvisions(book, data.LawBody.SupplProvision, imgProc); err != nil {
+			return fmt.Errorf("processing supplementary provisions: %w", err)
 		}
 	}
 

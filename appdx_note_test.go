@@ -359,7 +359,8 @@ func TestProcessAppdxTables(t *testing.T) {
 				t.Fatalf("Failed to create epub: %v", err)
 			}
 
-			err = processAppdxTables(book, tt.tables)
+			imgProc := &ImageProcessor{}
+		err = processAppdxTables(book, tt.tables, imgProc)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("processAppdxTables() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -410,7 +411,8 @@ func TestProcessAppdxTable(t *testing.T) {
 				t.Fatalf("Failed to create epub: %v", err)
 			}
 
-			err = processAppdxTable(book, tt.table, 0)
+			imgProc := &ImageProcessor{}
+		err = processAppdxTable(book, tt.table, 0, imgProc)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("processAppdxTable() error = %v, wantErr %v", err, tt.wantErr)
 			}

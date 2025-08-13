@@ -151,7 +151,7 @@ func processAppdxFigItem(book *epub.Epub, fig *jplaw.AppdxFig, parentFilename st
 
 	// Process TableStruct elements if present
 	for _, table := range fig.TableStruct {
-		body += processTableStruct(&table)
+		body += processTableStructWithImages(&table, imgProc)
 	}
 
 	// Create a subsection for this figure
@@ -169,20 +169,3 @@ func processAppdxFigItem(book *epub.Epub, fig *jplaw.AppdxFig, parentFilename st
 	return nil
 }
 
-// processTableStruct processes a TableStruct (simplified for now)
-func processTableStruct(table *jplaw.TableStruct) string {
-	html := "<div class='table-struct'>"
-
-	// Add title if present
-	if table.TableStructTitle != nil && table.TableStructTitle.Content != "" {
-		titleHTML := processTextWithRuby(table.TableStructTitle.Content, table.TableStructTitle.Ruby)
-		html += fmt.Sprintf("<p class='table-title'>%s</p>", titleHTML)
-	}
-
-	// For now, just indicate that a table exists
-	// Full table processing would require parsing the Table structure
-	html += "<p class='table-placeholder'>[表]</p>"
-
-	html += htmlDivEnd
-	return html
-}

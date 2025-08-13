@@ -67,6 +67,11 @@ func (p *paragraphProcessor) processNumberedParagraph(para *jplaw.Paragraph, idx
 		}
 	}
 
+	// Process TableStruct if present
+	if len(para.TableStruct) > 0 {
+		p.body += processTableStructs(para.TableStruct, p.imageProcessor)
+	}
+
 	// Process StyleStruct if present
 	if len(para.StyleStruct) > 0 {
 		p.body += ProcessStyleStructs(para.StyleStruct, p.imageProcessor)
@@ -108,6 +113,11 @@ func (p *paragraphProcessor) processRegularParagraph(para *jplaw.Paragraph) {
 				}
 			}
 		}
+	}
+
+	// Process TableStruct if present
+	if len(para.TableStruct) > 0 {
+		p.body += processTableStructs(para.TableStruct, p.imageProcessor)
 	}
 
 	// Process StyleStruct if present

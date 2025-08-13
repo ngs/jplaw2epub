@@ -61,7 +61,7 @@ func processAppdxNote(book *epub.Epub, note *jplaw.AppdxNote, idx int, imgProc *
 
 	// Process TableStructs
 	for _, tableStruct := range note.TableStruct {
-		body += processTableStruct(&tableStruct)
+		body += processTableStructWithImages(&tableStruct, imgProc)
 	}
 
 	// Process Remarks
@@ -156,13 +156,13 @@ func processRemarks(remarks *jplaw.Remarks) string {
 }
 
 // processAppdxTables processes appendix tables
-func processAppdxTables(book *epub.Epub, tables []jplaw.AppdxTable) error {
+func processAppdxTables(book *epub.Epub, tables []jplaw.AppdxTable, imgProc *ImageProcessor) error {
 	if len(tables) == 0 {
 		return nil
 	}
 
 	for idx, table := range tables {
-		if err := processAppdxTable(book, &table, idx); err != nil {
+		if err := processAppdxTable(book, &table, idx, imgProc); err != nil {
 			return fmt.Errorf("processing AppdxTable %d: %w", idx, err)
 		}
 	}
@@ -171,7 +171,7 @@ func processAppdxTables(book *epub.Epub, tables []jplaw.AppdxTable) error {
 }
 
 // processAppdxTable processes a single appendix table
-func processAppdxTable(book *epub.Epub, table *jplaw.AppdxTable, idx int) error {
+func processAppdxTable(book *epub.Epub, table *jplaw.AppdxTable, idx int, imgProc *ImageProcessor) error {
 	filename := fmt.Sprintf("appdx-table-%d.xhtml", idx)
 	body := ""
 
@@ -190,7 +190,7 @@ func processAppdxTable(book *epub.Epub, table *jplaw.AppdxTable, idx int) error 
 
 	// Process TableStructs
 	for _, tableStruct := range table.TableStruct {
-		body += processTableStruct(&tableStruct)
+		body += processTableStructWithImages(&tableStruct, imgProc)
 	}
 
 	// Process Remarks

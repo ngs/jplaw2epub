@@ -93,6 +93,20 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.9em;
 }
 
+/* Supplementary provisions */
+.amend-law-num {
+    margin: 0.5em 0;
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+}
+
+.suppl-appdx-table, .suppl-appdx-style, .suppl-appdx {
+    margin: 1em 0;
+    padding-left: 1em;
+    border-left: 2px solid #e0e0e0;
+}
+
 /* Table styles */
 .table-struct {
     margin: 1em 0;
@@ -137,6 +151,58 @@ strong {
     page-break-before: auto;
 }
 
+/* Table styles */
+.table-container {
+    margin: 1em 0;
+    overflow-x: auto;
+    page-break-inside: avoid;
+}
+
+.table-title {
+    font-weight: bold;
+    margin: 0.5em 0;
+    text-align: center;
+}
+
+.law-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.law-table td, .law-table th {
+    padding: 0.5em;
+    text-align: left;
+    vertical-align: top;
+}
+
+.law-table th {
+    font-weight: bold;
+    background-color: #f0f0f0;
+}
+
+/* Vertical writing mode for tables */
+.law-table.vertical-writing {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+}
+
+.law-table.vertical-writing td, .law-table.vertical-writing th {
+    height: auto;
+    min-height: 100px;
+}
+
+/* Part and article references in tables */
+.part-title {
+    font-weight: bold;
+    margin: 0.3em 0;
+}
+
+.article-ref {
+    margin: 0.2em 0;
+    font-size: 0.95em;
+}
+
 /* Print and e-reader specific styles */
 @media print, screen and (max-device-width: 1024px) {
     .figure img {
@@ -145,6 +211,10 @@ strong {
     
     body {
         margin: 0.5em;
+    }
+    
+    .law-table {
+        font-size: 0.9em;
     }
 }
 `
