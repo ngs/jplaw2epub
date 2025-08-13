@@ -10,7 +10,7 @@ func convertCategoryCode(codes []model.CategoryCode) []jplaw.CategoryCd {
 	if len(codes) == 0 {
 		return nil
 	}
-	
+
 	result := make([]jplaw.CategoryCd, 0, len(codes))
 	for _, code := range codes {
 		switch code {
@@ -124,7 +124,7 @@ func convertLawType(types []model.LawType) []jplaw.LawType {
 	if len(types) == 0 {
 		return nil
 	}
-	
+
 	result := make([]jplaw.LawType, 0, len(types))
 	for _, t := range types {
 		switch t {
@@ -153,7 +153,7 @@ func convertLawTypeToModel(t *jplaw.LawType) *model.LawType {
 	if t == nil {
 		return nil
 	}
-	
+
 	var result model.LawType
 	switch *t {
 	case jplaw.LawTypeConstitution:
@@ -180,7 +180,7 @@ func convertLawNumEraToModel(e *jplaw.LawNumEra) *model.LawNumEra {
 	if e == nil {
 		return nil
 	}
-	
+
 	var result model.LawNumEra
 	switch *e {
 	case jplaw.LawNumEraMeiji:
@@ -203,7 +203,7 @@ func convertLawNumTypeToModel(t *jplaw.LawNumType) *model.LawNumType {
 	if t == nil {
 		return nil
 	}
-	
+
 	var result model.LawNumType
 	switch *t {
 	case jplaw.LawNumTypeConstitution:
@@ -230,7 +230,7 @@ func convertCurrentRevisionStatusToModel(s *jplaw.CurrentRevisionStatus) *model.
 	if s == nil {
 		return nil
 	}
-	
+
 	var result model.CurrentRevisionStatus
 	switch *s {
 	case jplaw.CurrentRevisionStatusCurrentenforced:
@@ -251,7 +251,7 @@ func convertRepealStatusToModel(s *jplaw.RepealStatus) *model.RepealStatus {
 	if s == nil {
 		return nil
 	}
-	
+
 	var result model.RepealStatus
 	switch *s {
 	case jplaw.RepealStatusNone:
@@ -274,7 +274,7 @@ func convertMissionToModel(m *jplaw.Mission) *model.Mission {
 	if m == nil {
 		return nil
 	}
-	
+
 	var result model.Mission
 	switch *m {
 	case jplaw.MissionNew:
@@ -286,3 +286,4 @@ func convertMissionToModel(m *jplaw.Mission) *model.Mission {
 	}
 	return &result
 }
+

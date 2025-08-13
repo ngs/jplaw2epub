@@ -161,9 +161,9 @@ func epubsHandler(w http.ResponseWriter, r *http.Request) {
 		// The LawFullText should contain the XML as a string when LawFullTextFormat is XML
 		if xmlStr, ok := (*lawData.LawFullText).(string); ok {
 			// The XML is Base64 encoded, decode it
-			decodedXML, err := base64.StdEncoding.DecodeString(xmlStr)
-			if err != nil {
-				log.Printf("Error decoding Base64 for law ID %s: %v", lawID, err)
+			decodedXML, decodeErr := base64.StdEncoding.DecodeString(xmlStr)
+			if decodeErr != nil {
+				log.Printf("Error decoding Base64 for law ID %s: %v", lawID, decodeErr)
 				http.Error(w, "Error decoding XML content", http.StatusInternalServerError)
 				return
 			}
@@ -217,4 +217,3 @@ func epubsHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Successfully converted law ID %s to EPUB (%d bytes)", lawID, buf.Len())
 }
-
