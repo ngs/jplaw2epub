@@ -25,7 +25,10 @@
       "Bash(echo:*)",
       "Bash(echo \"checking GOBIN: $GOBIN\")",
       "Bash(find:*)",
-      "Bash(/Users/ngs/go/1.23.12/bin/goreleaser check)"
+      "Bash(/Users/ngs/go/1.23.12/bin/goreleaser check)",
+      "Bash(unzip:*)",
+      "Bash(gh pr view:*)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

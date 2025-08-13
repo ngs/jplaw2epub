@@ -9,13 +9,19 @@ import (
 
 // paragraphProcessor handles paragraph processing state
 type paragraphProcessor struct {
-	inList bool
-	body   string
+	inList         bool
+	body           string
+	imageProcessor *ImageProcessor
 }
 
 // processParagraphs processes all paragraphs in an article
 func processParagraphs(paragraphs []jplaw.Paragraph) string {
-	p := &paragraphProcessor{}
+	return processParagraphsWithImages(paragraphs, nil)
+}
+
+// processParagraphsWithImages processes all paragraphs with image support
+func processParagraphsWithImages(paragraphs []jplaw.Paragraph, imgProc *ImageProcessor) string {
+	p := &paragraphProcessor{imageProcessor: imgProc}
 
 	for i := range paragraphs {
 		para := &paragraphs[i]
@@ -47,7 +53,28 @@ func (p *paragraphProcessor) processNumberedParagraph(para *jplaw.Paragraph, idx
 	p.addParagraphSentences(para)
 
 	if len(para.Item) > 0 {
-		p.body += processItems(para.Item)
+		p.body += processItemsWithImages(para.Item, p.imageProcessor)
+	}
+
+	// Process FigStruct if present
+	if len(para.FigStruct) > 0 {
+		for _, fig := range para.FigStruct {
+			if p.imageProcessor != nil {
+				if html, err := p.imageProcessor.ProcessFigStruct(&fig); err == nil {
+					p.body += html
+				}
+			}
+		}
+	}
+
+	// Process TableStruct if present
+	if len(para.TableStruct) > 0 {
+		p.body += processTableStructs(para.TableStruct, p.imageProcessor)
+	}
+
+	// Process StyleStruct if present
+	if len(para.StyleStruct) > 0 {
+		p.body += ProcessStyleStructs(para.StyleStruct, p.imageProcessor)
 	}
 
 	p.body += htmlLIEnd
@@ -74,7 +101,28 @@ func (p *paragraphProcessor) processRegularParagraph(para *jplaw.Paragraph) {
 	}
 
 	if len(para.Item) > 0 {
-		p.body += processItems(para.Item)
+		p.body += processItemsWithImages(para.Item, p.imageProcessor)
+	}
+
+	// Process FigStruct if present
+	if len(para.FigStruct) > 0 {
+		for _, fig := range para.FigStruct {
+			if p.imageProcessor != nil {
+				if html, err := p.imageProcessor.ProcessFigStruct(&fig); err == nil {
+					p.body += html
+				}
+			}
+		}
+	}
+
+	// Process TableStruct if present
+	if len(para.TableStruct) > 0 {
+		p.body += processTableStructs(para.TableStruct, p.imageProcessor)
+	}
+
+	// Process StyleStruct if present
+	if len(para.StyleStruct) > 0 {
+		p.body += ProcessStyleStructs(para.StyleStruct, p.imageProcessor)
 	}
 }
 

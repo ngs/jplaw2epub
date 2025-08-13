@@ -9,6 +9,11 @@ import (
 
 // processItems processes a list of items
 func processItems(items []jplaw.Item) string {
+	return processItemsWithImages(items, nil)
+}
+
+// processItemsWithImages processes a list of items with image support
+func processItemsWithImages(items []jplaw.Item, imgProc *ImageProcessor) string {
 	if len(items) == 0 {
 		return ""
 	}
@@ -18,7 +23,7 @@ func processItems(items []jplaw.Item) string {
 	body := openListWithStyle(titles)
 
 	for i := range items {
-		body += processItem(&items[i])
+		body += processItemWithImages(&items[i], imgProc)
 	}
 
 	body += htmlOLEnd
@@ -27,6 +32,11 @@ func processItems(items []jplaw.Item) string {
 
 // processItem processes a single item
 func processItem(item *jplaw.Item) string {
+	return processItemWithImages(item, nil)
+}
+
+// processItemWithImages processes a single item with image support
+func processItemWithImages(item *jplaw.Item, imgProc *ImageProcessor) string {
 	body := htmlLI
 
 	// Add item title if not a list number
@@ -39,22 +49,51 @@ func processItem(item *jplaw.Item) string {
 		body += item.ItemSentence.Sentence[i].HTML()
 	}
 
+	// Process columns if present
+	for i := range item.ItemSentence.Column {
+		column := &item.ItemSentence.Column[i]
+		// Add column content
+		for j := range column.Sentence {
+			body += column.Sentence[j].HTML()
+		}
+		// Add line break if specified
+		if column.LineBreak {
+			body += "<br/>"
+		}
+	}
+
+	// Process FigStruct if present
+	if len(item.FigStruct) > 0 {
+		for _, fig := range item.FigStruct {
+			if imgProc != nil {
+				if html, err := imgProc.ProcessFigStruct(&fig); err == nil {
+					body += html
+				}
+			}
+		}
+	}
+
+	// Process StyleStruct if present
+	if len(item.StyleStruct) > 0 {
+		body += ProcessStyleStructs(item.StyleStruct, imgProc)
+	}
+
 	// Process subitems
 	if len(item.Subitem1) > 0 {
-		body += processSubitem1List(item.Subitem1)
+		body += processSubitem1ListWithImages(item.Subitem1, imgProc)
 	}
 
 	body += htmlLIEnd
 	return body
 }
 
-// processSubitem1List processes a list of Subitem1
-func processSubitem1List(subitems []jplaw.Subitem1) string {
+// processSubitem1ListWithImages processes a list of Subitem1 with image support
+func processSubitem1ListWithImages(subitems []jplaw.Subitem1, imgProc *ImageProcessor) string {
 	titles := collectSubitem1Titles(subitems)
 	body := openListWithStyle(titles)
 
 	for i := range subitems {
-		body += processSubitem1(&subitems[i])
+		body += processSubitem1WithImages(&subitems[i], imgProc)
 	}
 
 	body += htmlOLEnd
@@ -63,6 +102,11 @@ func processSubitem1List(subitems []jplaw.Subitem1) string {
 
 // processSubitem1 processes a single Subitem1
 func processSubitem1(subitem *jplaw.Subitem1) string {
+	return processSubitem1WithImages(subitem, nil)
+}
+
+// processSubitem1WithImages processes a single Subitem1 with image support
+func processSubitem1WithImages(subitem *jplaw.Subitem1, imgProc *ImageProcessor) string {
 	body := htmlLI
 
 	// Add title if not a list number
@@ -75,22 +119,38 @@ func processSubitem1(subitem *jplaw.Subitem1) string {
 		body += subitem.Subitem1Sentence.Sentence[i].HTML()
 	}
 
+	// Process FigStruct if present
+	if len(subitem.FigStruct) > 0 {
+		for _, fig := range subitem.FigStruct {
+			if imgProc != nil {
+				if html, err := imgProc.ProcessFigStruct(&fig); err == nil {
+					body += html
+				}
+			}
+		}
+	}
+
+	// Process StyleStruct if present
+	if len(subitem.StyleStruct) > 0 {
+		body += ProcessStyleStructs(subitem.StyleStruct, imgProc)
+	}
+
 	// Process Subitem2
 	if len(subitem.Subitem2) > 0 {
-		body += processSubitem2List(subitem.Subitem2)
+		body += processSubitem2ListWithImages(subitem.Subitem2, imgProc)
 	}
 
 	body += htmlLIEnd
 	return body
 }
 
-// processSubitem2List processes a list of Subitem2
-func processSubitem2List(subitems []jplaw.Subitem2) string {
+// processSubitem2ListWithImages processes a list of Subitem2 with image support
+func processSubitem2ListWithImages(subitems []jplaw.Subitem2, imgProc *ImageProcessor) string {
 	titles := collectSubitem2Titles(subitems)
 	body := openListWithStyle(titles)
 
 	for i := range subitems {
-		body += processSubitem2(&subitems[i])
+		body += processSubitem2WithImages(&subitems[i], imgProc)
 	}
 
 	body += htmlOLEnd
@@ -99,6 +159,11 @@ func processSubitem2List(subitems []jplaw.Subitem2) string {
 
 // processSubitem2 processes a single Subitem2
 func processSubitem2(subitem *jplaw.Subitem2) string {
+	return processSubitem2WithImages(subitem, nil)
+}
+
+// processSubitem2WithImages processes a single Subitem2 with image support
+func processSubitem2WithImages(subitem *jplaw.Subitem2, imgProc *ImageProcessor) string {
 	body := htmlLI
 
 	// Add title if not a list number
@@ -109,6 +174,22 @@ func processSubitem2(subitem *jplaw.Subitem2) string {
 	// Add sentences
 	for i := range subitem.Subitem2Sentence.Sentence {
 		body += subitem.Subitem2Sentence.Sentence[i].HTML()
+	}
+
+	// Process FigStruct if present
+	if len(subitem.FigStruct) > 0 {
+		for _, fig := range subitem.FigStruct {
+			if imgProc != nil {
+				if html, err := imgProc.ProcessFigStruct(&fig); err == nil {
+					body += html
+				}
+			}
+		}
+	}
+
+	// Process StyleStruct if present
+	if len(subitem.StyleStruct) > 0 {
+		body += ProcessStyleStructs(subitem.StyleStruct, imgProc)
 	}
 
 	body += htmlLIEnd
