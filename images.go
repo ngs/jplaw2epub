@@ -54,6 +54,10 @@ func (ip *ImageProcessor) ProcessFigStruct(fig *jplaw.FigStruct) (string, error)
 		return ip.buildImageHTML(epubPath, fig), nil
 	}
 
+	if ip.client == nil {
+		return "", fmt.Errorf("API client is not configured")
+	}
+
 	// Download image
 	imageData, contentType, err := ip.downloadImage(fig.Fig.Src)
 	if err != nil {
@@ -81,7 +85,7 @@ func (ip *ImageProcessor) ProcessFigStruct(fig *jplaw.FigStruct) (string, error)
 }
 
 // downloadImage downloads an image from the API
-func (ip *ImageProcessor) downloadImage(src string) ([]byte, string, error) {
+func (ip *ImageProcessor) downloadImage(src string) (data []byte, contentType string, err error) {
 	params := &lawapi.GetAttachmentParams{
 		Src: lawapi.StringPtr(src),
 	}
@@ -96,10 +100,10 @@ func (ip *ImageProcessor) downloadImage(src string) ([]byte, string, error) {
 	}
 
 	// The API returns binary data as a string
-	data := []byte(*attachment)
+	data = []byte(*attachment)
 
 	// Guess content type from file extension
-	contentType := guessContentType(src)
+	contentType = guessContentType(src)
 
 	return data, contentType, nil
 }
@@ -169,7 +173,10 @@ func (ip *ImageProcessor) buildImageHTML(epubPath string, fig *jplaw.FigStruct) 
 	}
 
 	// Add image with configurable size constraints for EPUB readers
-	html += fmt.Sprintf(`<img src="%s" alt="Figure" style="max-width: 100%%; max-height: %s; height: auto; display: block; margin: 0 auto; page-break-inside: avoid;" />`, epubPath, ip.maxImageHeight)
+	imgStyle := fmt.Sprintf("max-width: 100%%; max-height: %s; "+
+		"height: auto; display: block; margin: 0 auto; page-break-inside: avoid;",
+		ip.maxImageHeight)
+	html += fmt.Sprintf(`<img src=%q alt="Figure" style=%q />`, epubPath, imgStyle)
 
 	// Add remarks if present
 	for i := range fig.Remarks {
@@ -192,10 +199,10 @@ func (ip *ImageProcessor) buildImageHTML(epubPath string, fig *jplaw.FigStruct) 
 			html += processItems(remark.Item)
 		}
 
-		html += `</div>`
+		html += htmlDivEnd
 	}
 
-	html += `</div>`
+	html += htmlDivEnd
 	return html
 }
 

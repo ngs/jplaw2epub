@@ -13,7 +13,13 @@ func processArticles(book *epub.Epub, articles []jplaw.Article, parentFilename s
 }
 
 // processArticlesWithImages processes articles with image support
-func processArticlesWithImages(book *epub.Epub, articles []jplaw.Article, parentFilename string, chapterIdx, sectionIdx int, imgProc *ImageProcessor) error {
+func processArticlesWithImages(
+	book *epub.Epub,
+	articles []jplaw.Article,
+	parentFilename string,
+	chapterIdx, sectionIdx int,
+	imgProc *ImageProcessor,
+) error {
 	for j := range articles {
 		if err := processArticleWithImages(book, &articles[j], parentFilename, chapterIdx, sectionIdx, j, imgProc); err != nil {
 			return err
@@ -28,7 +34,13 @@ func processArticle(book *epub.Epub, article *jplaw.Article, parentFilename stri
 }
 
 // processArticleWithImages processes a single article with image support
-func processArticleWithImages(book *epub.Epub, article *jplaw.Article, parentFilename string, chapterIdx, sectionIdx, articleIdx int, imgProc *ImageProcessor) error {
+func processArticleWithImages(
+	book *epub.Epub,
+	article *jplaw.Article,
+	parentFilename string,
+	chapterIdx, sectionIdx, articleIdx int,
+	imgProc *ImageProcessor,
+) error {
 	subFilename := buildArticleFilename(chapterIdx, sectionIdx, articleIdx)
 	articleTitle := buildArticleTitle(article)
 	body := buildArticleBodyWithImages(article, articleTitle, imgProc)

@@ -37,7 +37,7 @@ func processAppdxNote(book *epub.Epub, note *jplaw.AppdxNote, idx int, imgProc *
 
 	// Process related article number if present
 	if note.RelatedArticleNum != nil && note.RelatedArticleNum.Content != "" {
-		body += fmt.Sprintf(`<div class="related-articles">%s</div>`, 
+		body += fmt.Sprintf(`<div class="related-articles">%s</div>`,
 			processTextWithRuby(note.RelatedArticleNum.Content, note.RelatedArticleNum.Ruby))
 	}
 
@@ -84,24 +84,24 @@ func processNoteStruct(noteStruct *jplaw.NoteStruct, imgProc *ImageProcessor) st
 
 	// Add title if present
 	if noteStruct.NoteStructTitle != nil && noteStruct.NoteStructTitle.Content != "" {
-		body += fmt.Sprintf(`<h3>%s</h3>`, 
+		body += fmt.Sprintf(`<h3>%s</h3>`,
 			processTextWithRuby(noteStruct.NoteStructTitle.Content, noteStruct.NoteStructTitle.Ruby))
 	}
 
 	// Process Note content
 	// Note contains innerxml which we need to parse manually
 	noteContent := noteStruct.Note.Content
-	
+
 	// The Note content may contain Paragraph and Item elements as raw XML
 	// We need to process them properly
 	body += processNoteContent(noteContent, imgProc)
 
 	// Process Remarks
-	for _, remark := range noteStruct.Remarks {
-		body += processRemarks(&remark)
+	for i := range noteStruct.Remarks {
+		body += processRemarks(&noteStruct.Remarks[i])
 	}
 
-	body += `</div>`
+	body += htmlDivEnd
 	return body
 }
 
@@ -110,47 +110,48 @@ func processNoteContent(content string, imgProc *ImageProcessor) string {
 	// Parse the XML content as a fragment
 	// We'll wrap it in a root element to make it valid XML
 	wrappedContent := "<root>" + content + "</root>"
-	
+
 	// Define a structure to parse the Note content
 	type NoteContentRoot struct {
 		Paragraphs []jplaw.Paragraph `xml:"Paragraph"`
 	}
-	
+
 	var root NoteContentRoot
 	if err := xml.Unmarshal([]byte(wrappedContent), &root); err != nil {
 		// If parsing fails, return the content as-is wrapped in a div
 		return fmt.Sprintf("<div class='note-content'>%s</div>", content)
 	}
-	
+
 	// Process paragraphs using the existing paragraph processor
 	if len(root.Paragraphs) > 0 {
 		return processParagraphsWithImages(root.Paragraphs, imgProc)
 	}
-	
-	return ""
+
+	// If no paragraphs were found, return the content wrapped in a div
+	return fmt.Sprintf("<div class='note-content'>%s</div>", content)
 }
 
 // processRemarks processes remarks
 func processRemarks(remarks *jplaw.Remarks) string {
 	body := `<div class="appdx-remarks">`
-	
+
 	// Add label if present
 	if remarks.RemarksLabel.Content != "" {
 		body += fmt.Sprintf(`<p class="remarks-label">%s</p>`,
 			processTextWithRuby(remarks.RemarksLabel.Content, remarks.RemarksLabel.Ruby))
 	}
-	
+
 	// Process sentences
-	for _, sentence := range remarks.Sentence {
-		body += fmt.Sprintf(`<p class="remark">%s</p>`, sentence.HTML())
+	for i := range remarks.Sentence {
+		body += fmt.Sprintf(`<p class="remark">%s</p>`, remarks.Sentence[i].HTML())
 	}
-	
+
 	// Process items
 	if len(remarks.Item) > 0 {
 		body += processItems(remarks.Item)
 	}
-	
-	body += `</div>`
+
+	body += htmlDivEnd
 	return body
 }
 

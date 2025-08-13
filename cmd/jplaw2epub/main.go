@@ -72,7 +72,7 @@ func parseFlags() (*options, error) {
 
 	// Default to downloading images unless explicitly disabled
 	downloadImages := !*downloadImagesFlag || *oldImagesFlag
-	
+
 	opts := &options{
 		destPath:       *destPathFlag,
 		sourcePath:     flag.Arg(0),

@@ -155,8 +155,9 @@ func TestBuildImageHTML(t *testing.T) {
 				Fig: jplaw.Fig{Src: "./pict/test.pdf"},
 			},
 			contains: []string{
-				`<div class="figure">`,
-				`<img src="images/test.png" alt="Figure" />`,
+				`<div class="figure"`,
+				`src="images/test.png"`,
+				`alt="Figure"`,
 				`</div>`,
 			},
 		},
@@ -171,7 +172,8 @@ func TestBuildImageHTML(t *testing.T) {
 			},
 			contains: []string{
 				`<p class="figure-title">図1 テスト画像</p>`,
-				`<img src="images/test.png" alt="Figure" />`,
+				`src="images/test.png"`,
+				`alt="Figure"`,
 			},
 		},
 	}

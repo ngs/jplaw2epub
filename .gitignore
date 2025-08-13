@@ -3,4 +3,4 @@
 # Generated EPUB files
 *.epub
 
-coverage.out
+*.out

@@ -9,6 +9,19 @@ import (
 	"go.ngs.io/jplaw-xml"
 )
 
+const testXMLSimple = `<?xml version="1.0" encoding="UTF-8"?>
+<Law Era="Reiwa" Year="1" Num="1" LawType="Act" Lang="ja">
+  <LawNum>令和元年法律第一号</LawNum>
+  <LawBody>
+    <LawTitle>テスト法</LawTitle>
+    <MainProvision>
+      <Chapter Num="1">
+        <ChapterTitle>第一章</ChapterTitle>
+      </Chapter>
+    </MainProvision>
+  </LawBody>
+</Law>`
+
 func TestCreateEPUBFromXMLFile(t *testing.T) {
 	// Create a simple test XML
 	xmlContent := `<?xml version="1.0" encoding="UTF-8"?>
@@ -39,11 +52,11 @@ func TestCreateEPUBFromXMLFile(t *testing.T) {
 	}
 	defer os.Remove(tmpfile.Name())
 
-	if _, err := tmpfile.Write([]byte(xmlContent)); err != nil {
-		t.Fatalf("Failed to write test XML: %v", err)
+	if _, writeErr := tmpfile.WriteString(xmlContent); writeErr != nil {
+		t.Fatalf("Failed to write test XML: %v", writeErr)
 	}
-	if err := tmpfile.Close(); err != nil {
-		t.Fatalf("Failed to close temp file: %v", err)
+	if closeErr := tmpfile.Close(); closeErr != nil {
+		t.Fatalf("Failed to close temp file: %v", closeErr)
 	}
 
 	// Open and test
@@ -93,11 +106,11 @@ func TestCreateEPUBFromXMLFileWithOptions(t *testing.T) {
 	}
 	defer os.Remove(tmpfile.Name())
 
-	if _, err := tmpfile.Write([]byte(xmlContent)); err != nil {
-		t.Fatalf("Failed to write test XML: %v", err)
+	if _, writeErr := tmpfile.WriteString(xmlContent); writeErr != nil {
+		t.Fatalf("Failed to write test XML: %v", writeErr)
 	}
-	if err := tmpfile.Close(); err != nil {
-		t.Fatalf("Failed to close temp file: %v", err)
+	if closeErr := tmpfile.Close(); closeErr != nil {
+		t.Fatalf("Failed to close temp file: %v", closeErr)
 	}
 
 	xmlFile, err := os.Open(tmpfile.Name())
@@ -120,18 +133,7 @@ func TestCreateEPUBFromXMLFileWithOptions(t *testing.T) {
 }
 
 func TestCreateEPUBFromXMLPath(t *testing.T) {
-	xmlContent := `<?xml version="1.0" encoding="UTF-8"?>
-<Law Era="Reiwa" Year="1" Num="1" LawType="Act" Lang="ja">
-  <LawNum>令和元年法律第一号</LawNum>
-  <LawBody>
-    <LawTitle>テスト法</LawTitle>
-    <MainProvision>
-      <Chapter Num="1">
-        <ChapterTitle>第一章</ChapterTitle>
-      </Chapter>
-    </MainProvision>
-  </LawBody>
-</Law>`
+	xmlContent := testXMLSimple
 
 	// Create temp file
 	tmpfile, err := os.CreateTemp("", "test_*.xml")
@@ -140,11 +142,11 @@ func TestCreateEPUBFromXMLPath(t *testing.T) {
 	}
 	defer os.Remove(tmpfile.Name())
 
-	if _, err := tmpfile.Write([]byte(xmlContent)); err != nil {
-		t.Fatalf("Failed to write test XML: %v", err)
+	if _, writeErr := tmpfile.WriteString(xmlContent); writeErr != nil {
+		t.Fatalf("Failed to write test XML: %v", writeErr)
 	}
-	if err := tmpfile.Close(); err != nil {
-		t.Fatalf("Failed to close temp file: %v", err)
+	if closeErr := tmpfile.Close(); closeErr != nil {
+		t.Fatalf("Failed to close temp file: %v", closeErr)
 	}
 
 	book, err := CreateEPUBFromXMLPath(tmpfile.Name())
@@ -158,18 +160,7 @@ func TestCreateEPUBFromXMLPath(t *testing.T) {
 
 func TestWriteEPUB(t *testing.T) {
 	// Create a simple EPUB
-	xmlContent := `<?xml version="1.0" encoding="UTF-8"?>
-<Law Era="Reiwa" Year="1" Num="1" LawType="Act" Lang="ja">
-  <LawNum>令和元年法律第一号</LawNum>
-  <LawBody>
-    <LawTitle>テスト法</LawTitle>
-    <MainProvision>
-      <Chapter Num="1">
-        <ChapterTitle>第一章</ChapterTitle>
-      </Chapter>
-    </MainProvision>
-  </LawBody>
-</Law>`
+	xmlContent := testXMLSimple
 
 	// Create temp file for XML
 	tmpfile, err := os.CreateTemp("", "test_*.xml")
@@ -178,11 +169,11 @@ func TestWriteEPUB(t *testing.T) {
 	}
 	defer os.Remove(tmpfile.Name())
 
-	if _, err := tmpfile.Write([]byte(xmlContent)); err != nil {
-		t.Fatalf("Failed to write test XML: %v", err)
+	if _, writeErr := tmpfile.WriteString(xmlContent); writeErr != nil {
+		t.Fatalf("Failed to write test XML: %v", writeErr)
 	}
-	if err := tmpfile.Close(); err != nil {
-		t.Fatalf("Failed to close temp file: %v", err)
+	if closeErr := tmpfile.Close(); closeErr != nil {
+		t.Fatalf("Failed to close temp file: %v", closeErr)
 	}
 
 	book, err := CreateEPUBFromXMLPath(tmpfile.Name())

@@ -48,7 +48,7 @@ func processItemWithImages(item *jplaw.Item, imgProc *ImageProcessor) string {
 	for i := range item.ItemSentence.Sentence {
 		body += item.ItemSentence.Sentence[i].HTML()
 	}
-	
+
 	// Process columns if present
 	for i := range item.ItemSentence.Column {
 		column := &item.ItemSentence.Column[i]
@@ -85,11 +85,6 @@ func processItemWithImages(item *jplaw.Item, imgProc *ImageProcessor) string {
 
 	body += htmlLIEnd
 	return body
-}
-
-// processSubitem1List processes a list of Subitem1
-func processSubitem1List(subitems []jplaw.Subitem1) string {
-	return processSubitem1ListWithImages(subitems, nil)
 }
 
 // processSubitem1ListWithImages processes a list of Subitem1 with image support
@@ -147,11 +142,6 @@ func processSubitem1WithImages(subitem *jplaw.Subitem1, imgProc *ImageProcessor)
 
 	body += htmlLIEnd
 	return body
-}
-
-// processSubitem2List processes a list of Subitem2
-func processSubitem2List(subitems []jplaw.Subitem2) string {
-	return processSubitem2ListWithImages(subitems, nil)
 }
 
 // processSubitem2ListWithImages processes a list of Subitem2 with image support

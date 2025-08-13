@@ -149,6 +149,9 @@ func loadXMLDataFromReader(reader io.Reader) (*jplaw.Law, error) {
 
 // createEPUBFromData creates and sets up EPUB from law data
 func createEPUBFromData(data *jplaw.Law) (*epub.Epub, error) {
+	if data.LawBody.LawTitle == nil {
+		return nil, fmt.Errorf("law title is required")
+	}
 	book, err := epub.NewEpub(data.LawBody.LawTitle.Content)
 	if err != nil {
 		return nil, fmt.Errorf("creating epub: %w", err)
@@ -162,6 +165,62 @@ func createEPUBFromData(data *jplaw.Law) (*epub.Epub, error) {
 	}
 
 	return book, nil
+}
+
+// createImageProcessor creates an image processor from options
+func createImageProcessor(book *epub.Epub, opts *EPUBOptions) *ImageProcessor {
+	if opts == nil || opts.APIClient == nil || opts.RevisionID == "" {
+		return nil
+	}
+
+	imgProc := NewImageProcessor(opts.APIClient, opts.RevisionID, book)
+	if opts.MaxImageHeight != "" {
+		imgProc.SetMaxImageHeight(opts.MaxImageHeight)
+	}
+	return imgProc
+}
+
+// processMainProvision processes the main provision content
+func processMainProvision(book *epub.Epub, mainProv *jplaw.MainProvision, imgProc *ImageProcessor) error {
+	if len(mainProv.Chapter) > 0 {
+		// Process chapters
+		for i := range mainProv.Chapter {
+			if err := processChapterWithImages(book, &mainProv.Chapter[i], i, imgProc); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	// No chapters, process direct articles or paragraphs
+	if len(mainProv.Article) == 0 && len(mainProv.Paragraph) == 0 {
+		return nil
+	}
+
+	mainFilename := "main-content.xhtml"
+	body := ""
+
+	// Process direct paragraphs
+	if len(mainProv.Paragraph) > 0 {
+		body += processParagraphsWithImages(mainProv.Paragraph, imgProc)
+	}
+
+	// Process direct articles
+	for i := range mainProv.Article {
+		article := &mainProv.Article[i]
+		articleTitle := buildArticleTitle(article)
+		body += buildArticleBodyWithImages(article, articleTitle, imgProc)
+	}
+
+	// Add the main content as a section
+	if body != "" {
+		_, err := book.AddSection(body, "本文", mainFilename, "")
+		if err != nil {
+			return fmt.Errorf("adding main content: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // setupEPUBMetadata sets up the basic EPUB metadata
@@ -181,50 +240,11 @@ func setupEPUBMetadata(book *epub.Epub, data *jplaw.Law) {
 // processChaptersWithOptions processes all chapters with image support
 func processChaptersWithOptions(book *epub.Epub, data *jplaw.Law, opts *EPUBOptions) error {
 	// Create image processor if API client is available
-	var imgProc *ImageProcessor
-	if opts != nil && opts.APIClient != nil && opts.RevisionID != "" {
-		imgProc = NewImageProcessor(opts.APIClient, opts.RevisionID, book)
-		if opts.MaxImageHeight != "" {
-			imgProc.SetMaxImageHeight(opts.MaxImageHeight)
-		}
-	}
+	imgProc := createImageProcessor(book, opts)
 
-	// Process main provision content based on what's available
-	mainProv := &data.LawBody.MainProvision
-	
-	// Check if there are chapters
-	if len(mainProv.Chapter) > 0 {
-		// Process chapters
-		for i := range mainProv.Chapter {
-			if err := processChapterWithImages(book, &mainProv.Chapter[i], i, imgProc); err != nil {
-				return err
-			}
-		}
-	} else if len(mainProv.Article) > 0 || len(mainProv.Paragraph) > 0 {
-		// No chapters, process direct articles or paragraphs
-		mainFilename := "main-content.xhtml"
-		body := ""
-		
-		// Process direct paragraphs
-		if len(mainProv.Paragraph) > 0 {
-			body += processParagraphsWithImages(mainProv.Paragraph, imgProc)
-		}
-		
-		// Process direct articles
-		if len(mainProv.Article) > 0 {
-			for _, article := range mainProv.Article {
-				articleTitle := buildArticleTitle(&article)
-				body += buildArticleBodyWithImages(&article, articleTitle, imgProc)
-			}
-		}
-		
-		// Add the main content as a section
-		if body != "" {
-			_, err := book.AddSection(body, "本文", mainFilename, "")
-			if err != nil {
-				return fmt.Errorf("adding main content: %w", err)
-			}
-		}
+	// Process main provision content
+	if err := processMainProvision(book, &data.LawBody.MainProvision, imgProc); err != nil {
+		return err
 	}
 
 	// Process AppdxNote (appendix notes)
@@ -284,7 +304,7 @@ func processChapterWithImages(book *epub.Epub, chapter *jplaw.Chapter, chapterId
 // buildChapterBody builds the HTML body for a chapter
 func buildChapterBody(chapter *jplaw.Chapter) string {
 	chapterTitleHTML := processTextWithRuby(chapter.ChapterTitle.Content, chapter.ChapterTitle.Ruby)
-	body := fmt.Sprintf("<h2>%s</h2>", chapterTitleHTML)
+	body := fmt.Sprintf(`<div class="chapter-title">%s</div>`, chapterTitleHTML)
 
 	// Process Sections if any
 	if len(chapter.Section) > 0 {
@@ -311,6 +331,6 @@ func buildSectionsHTML(sections []jplaw.Section) string {
 		}
 	}
 
-	body += "</div>"
+	body += htmlDivEnd
 	return body
 }

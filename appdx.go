@@ -7,6 +7,8 @@ import (
 	"go.ngs.io/jplaw-xml"
 )
 
+const htmlDivEnd = "</div>"
+
 // processAppdxStyles processes AppdxStyle elements (appendix styles)
 func processAppdxStyles(book *epub.Epub, styles []jplaw.AppdxStyle, imgProc *ImageProcessor) error {
 	if len(styles) == 0 {
@@ -46,7 +48,7 @@ func processAppdxStyle(book *epub.Epub, style *jplaw.AppdxStyle, parentFilename 
 
 	// Add related article reference if present
 	if style.RelatedArticleNum != nil && style.RelatedArticleNum.Content != "" {
-		body += fmt.Sprintf("<div class='related-articles'><p>関連条文: %s</p></div>", 
+		body += fmt.Sprintf("<div class='related-articles'><p>関連条文: %s</p></div>",
 			style.RelatedArticleNum.Content)
 	}
 
@@ -96,8 +98,8 @@ func processAppdxRemark(remark *jplaw.Remarks, imgProc *ImageProcessor) string {
 		html += processItemsWithImages(remark.Item, imgProc)
 	}
 
-	html += "</div>"
-	html += "</div>"
+	html += htmlDivEnd
+	html += htmlDivEnd
 	return html
 }
 
@@ -181,6 +183,6 @@ func processTableStruct(table *jplaw.TableStruct) string {
 	// Full table processing would require parsing the Table structure
 	html += "<p class='table-placeholder'>[表]</p>"
 
-	html += "</div>"
+	html += htmlDivEnd
 	return html
 }
