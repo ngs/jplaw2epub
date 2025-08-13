@@ -5,6 +5,59 @@ import (
 	"go.ngs.io/jplaw2epub/graphql/model"
 )
 
+var categoryCodeMap = map[model.CategoryCode]jplaw.CategoryCd{
+	model.CategoryCodeConstitution:         jplaw.CategoryCdConstitution,
+	model.CategoryCodeCriminal:             jplaw.CategoryCdCriminal,
+	model.CategoryCodeFinanceGeneral:       jplaw.CategoryCdFinanceGeneral,
+	model.CategoryCodeFisheries:            jplaw.CategoryCdFisheries,
+	model.CategoryCodeTourism:              jplaw.CategoryCdTourism,
+	model.CategoryCodeParliament:           jplaw.CategoryCdParliament,
+	model.CategoryCodePolice:               jplaw.CategoryCdPolice,
+	model.CategoryCodeNationalProperty:     jplaw.CategoryCdNationalProperty,
+	model.CategoryCodeMining:               jplaw.CategoryCdMining,
+	model.CategoryCodePostalService:        jplaw.CategoryCdPostalService,
+	model.CategoryCodeAdministrativeOrg:    jplaw.CategoryCdAdministrativeOrg,
+	model.CategoryCodeFireService:          jplaw.CategoryCdFireService,
+	model.CategoryCodeNationalTax:          jplaw.CategoryCdNationalTax,
+	model.CategoryCodeIndustry:             jplaw.CategoryCdIndustry,
+	model.CategoryCodeTelecommunications:   jplaw.CategoryCdTelecommunications,
+	model.CategoryCodeCivilService:         jplaw.CategoryCdCivilService,
+	model.CategoryCodeNationalDevelopment:  jplaw.CategoryCdNationalDevelopment,
+	model.CategoryCodeBusiness:             jplaw.CategoryCdBusiness,
+	model.CategoryCodeCommerce:             jplaw.CategoryCdCommerce,
+	model.CategoryCodeLabor:                jplaw.CategoryCdLabor,
+	model.CategoryCodeAdministrativeProc:   jplaw.CategoryCdAdministrativeProc,
+	model.CategoryCodeLand:                 jplaw.CategoryCdLand,
+	model.CategoryCodeNationalBonds:        jplaw.CategoryCdNationalBonds,
+	model.CategoryCodeFinanceInsurance:     jplaw.CategoryCdFinanceInsurance,
+	model.CategoryCodeEnvironmentalProtect: jplaw.CategoryCdEnvironmentalProtect,
+	model.CategoryCodeStatistics:           jplaw.CategoryCdStatistics,
+	model.CategoryCodeCityPlanning:         jplaw.CategoryCdCityPlanning,
+	model.CategoryCodeEducation:            jplaw.CategoryCdEducation,
+	model.CategoryCodeForeignExchangeTrade: jplaw.CategoryCdForeignExchangeTrade,
+	model.CategoryCodePublicHealth:         jplaw.CategoryCdPublicHealth,
+	model.CategoryCodeLocalGovernment:      jplaw.CategoryCdLocalGovernment,
+	model.CategoryCodeRoads:                jplaw.CategoryCdRoads,
+	model.CategoryCodeCulture:              jplaw.CategoryCdCulture,
+	model.CategoryCodeLandTransport:        jplaw.CategoryCdLandTransport,
+	model.CategoryCodeSocialWelfare:        jplaw.CategoryCdSocialWelfare,
+	model.CategoryCodeLocalFinance:         jplaw.CategoryCdLocalFinance,
+	model.CategoryCodeRivers:               jplaw.CategoryCdRivers,
+	model.CategoryCodeIndustryGeneral:      jplaw.CategoryCdIndustryGeneral,
+	model.CategoryCodeMaritimeTransport:    jplaw.CategoryCdMaritimeTransport,
+	model.CategoryCodeSocialInsurance:      jplaw.CategoryCdSocialInsurance,
+	model.CategoryCodeJudiciary:            jplaw.CategoryCdJudiciary,
+	model.CategoryCodeDisasterManagement:   jplaw.CategoryCdDisasterManagement,
+	model.CategoryCodeAgriculture:          jplaw.CategoryCdAgriculture,
+	model.CategoryCodeAviation:             jplaw.CategoryCdAviation,
+	model.CategoryCodeDefense:              jplaw.CategoryCdDefense,
+	model.CategoryCodeCivil:                jplaw.CategoryCdCivil,
+	model.CategoryCodeBuildingHousing:      jplaw.CategoryCdBuildingHousing,
+	model.CategoryCodeForestry:             jplaw.CategoryCdForestry,
+	model.CategoryCodeFreightTransport:     jplaw.CategoryCdFreightTransport,
+	model.CategoryCodeForeignAffairs:       jplaw.CategoryCdForeignAffairs,
+}
+
 // convertCategoryCode converts GraphQL CategoryCode to jplaw CategoryCd
 func convertCategoryCode(codes []model.CategoryCode) []jplaw.CategoryCd {
 	if len(codes) == 0 {
@@ -13,107 +66,8 @@ func convertCategoryCode(codes []model.CategoryCode) []jplaw.CategoryCd {
 
 	result := make([]jplaw.CategoryCd, 0, len(codes))
 	for _, code := range codes {
-		switch code {
-		case model.CategoryCodeConstitution:
-			result = append(result, jplaw.CategoryCdConstitution)
-		case model.CategoryCodeCriminal:
-			result = append(result, jplaw.CategoryCdCriminal)
-		case model.CategoryCodeFinanceGeneral:
-			result = append(result, jplaw.CategoryCdFinanceGeneral)
-		case model.CategoryCodeFisheries:
-			result = append(result, jplaw.CategoryCdFisheries)
-		case model.CategoryCodeTourism:
-			result = append(result, jplaw.CategoryCdTourism)
-		case model.CategoryCodeParliament:
-			result = append(result, jplaw.CategoryCdParliament)
-		case model.CategoryCodePolice:
-			result = append(result, jplaw.CategoryCdPolice)
-		case model.CategoryCodeNationalProperty:
-			result = append(result, jplaw.CategoryCdNationalProperty)
-		case model.CategoryCodeMining:
-			result = append(result, jplaw.CategoryCdMining)
-		case model.CategoryCodePostalService:
-			result = append(result, jplaw.CategoryCdPostalService)
-		case model.CategoryCodeAdministrativeOrg:
-			result = append(result, jplaw.CategoryCdAdministrativeOrg)
-		case model.CategoryCodeFireService:
-			result = append(result, jplaw.CategoryCdFireService)
-		case model.CategoryCodeNationalTax:
-			result = append(result, jplaw.CategoryCdNationalTax)
-		case model.CategoryCodeIndustry:
-			result = append(result, jplaw.CategoryCdIndustry)
-		case model.CategoryCodeTelecommunications:
-			result = append(result, jplaw.CategoryCdTelecommunications)
-		case model.CategoryCodeCivilService:
-			result = append(result, jplaw.CategoryCdCivilService)
-		case model.CategoryCodeNationalDevelopment:
-			result = append(result, jplaw.CategoryCdNationalDevelopment)
-		case model.CategoryCodeBusiness:
-			result = append(result, jplaw.CategoryCdBusiness)
-		case model.CategoryCodeCommerce:
-			result = append(result, jplaw.CategoryCdCommerce)
-		case model.CategoryCodeLabor:
-			result = append(result, jplaw.CategoryCdLabor)
-		case model.CategoryCodeAdministrativeProc:
-			result = append(result, jplaw.CategoryCdAdministrativeProc)
-		case model.CategoryCodeLand:
-			result = append(result, jplaw.CategoryCdLand)
-		case model.CategoryCodeNationalBonds:
-			result = append(result, jplaw.CategoryCdNationalBonds)
-		case model.CategoryCodeFinanceInsurance:
-			result = append(result, jplaw.CategoryCdFinanceInsurance)
-		case model.CategoryCodeEnvironmentalProtect:
-			result = append(result, jplaw.CategoryCdEnvironmentalProtect)
-		case model.CategoryCodeStatistics:
-			result = append(result, jplaw.CategoryCdStatistics)
-		case model.CategoryCodeCityPlanning:
-			result = append(result, jplaw.CategoryCdCityPlanning)
-		case model.CategoryCodeEducation:
-			result = append(result, jplaw.CategoryCdEducation)
-		case model.CategoryCodeForeignExchangeTrade:
-			result = append(result, jplaw.CategoryCdForeignExchangeTrade)
-		case model.CategoryCodePublicHealth:
-			result = append(result, jplaw.CategoryCdPublicHealth)
-		case model.CategoryCodeLocalGovernment:
-			result = append(result, jplaw.CategoryCdLocalGovernment)
-		case model.CategoryCodeRoads:
-			result = append(result, jplaw.CategoryCdRoads)
-		case model.CategoryCodeCulture:
-			result = append(result, jplaw.CategoryCdCulture)
-		case model.CategoryCodeLandTransport:
-			result = append(result, jplaw.CategoryCdLandTransport)
-		case model.CategoryCodeSocialWelfare:
-			result = append(result, jplaw.CategoryCdSocialWelfare)
-		case model.CategoryCodeLocalFinance:
-			result = append(result, jplaw.CategoryCdLocalFinance)
-		case model.CategoryCodeRivers:
-			result = append(result, jplaw.CategoryCdRivers)
-		case model.CategoryCodeIndustryGeneral:
-			result = append(result, jplaw.CategoryCdIndustryGeneral)
-		case model.CategoryCodeMaritimeTransport:
-			result = append(result, jplaw.CategoryCdMaritimeTransport)
-		case model.CategoryCodeSocialInsurance:
-			result = append(result, jplaw.CategoryCdSocialInsurance)
-		case model.CategoryCodeJudiciary:
-			result = append(result, jplaw.CategoryCdJudiciary)
-		case model.CategoryCodeDisasterManagement:
-			result = append(result, jplaw.CategoryCdDisasterManagement)
-		case model.CategoryCodeAgriculture:
-			result = append(result, jplaw.CategoryCdAgriculture)
-		case model.CategoryCodeAviation:
-			result = append(result, jplaw.CategoryCdAviation)
-		case model.CategoryCodeDefense:
-			result = append(result, jplaw.CategoryCdDefense)
-		case model.CategoryCodeCivil:
-			result = append(result, jplaw.CategoryCdCivil)
-		case model.CategoryCodeBuildingHousing:
-			result = append(result, jplaw.CategoryCdBuildingHousing)
-		case model.CategoryCodeForestry:
-			result = append(result, jplaw.CategoryCdForestry)
-		case model.CategoryCodeFreightTransport:
-			result = append(result, jplaw.CategoryCdFreightTransport)
-		case model.CategoryCodeForeignAffairs:
-			result = append(result, jplaw.CategoryCdForeignAffairs)
+		if mapped, ok := categoryCodeMap[code]; ok {
+			result = append(result, mapped)
 		}
 	}
 	return result

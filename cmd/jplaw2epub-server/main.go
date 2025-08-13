@@ -35,7 +35,11 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to find available port: %v", err)
 		}
-		port = strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
+		tcpAddr, ok := listener.Addr().(*net.TCPAddr)
+		if !ok {
+			log.Fatalf("Failed to get TCP address from listener")
+		}
+		port = strconv.Itoa(tcpAddr.Port)
 		if err := listener.Close(); err != nil {
 			log.Printf("Warning: failed to close listener: %v", err)
 		}
