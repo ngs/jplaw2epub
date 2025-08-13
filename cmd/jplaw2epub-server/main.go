@@ -31,8 +31,8 @@ func main() {
 	} else if envPort := os.Getenv("PORT"); envPort != "" {
 		port = envPort
 	} else {
-		// Find an available port
-		listener, err := net.Listen("tcp", ":0")
+		// Find an available port on localhost
+		listener, err := net.Listen("tcp", "localhost:0")
 		if err != nil {
 			log.Fatalf("Failed to find available port: %v", err)
 		}
