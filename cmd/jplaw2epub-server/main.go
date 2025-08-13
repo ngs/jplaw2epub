@@ -36,7 +36,9 @@ func main() {
 			log.Fatalf("Failed to find available port: %v", err)
 		}
 		port = strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
-		listener.Close()
+		if err := listener.Close(); err != nil {
+			log.Printf("Warning: failed to close listener: %v", err)
+		}
 	}
 
 	http.HandleFunc("/convert", convertHandler)
@@ -206,7 +208,7 @@ func epubsHandler(w http.ResponseWriter, r *http.Request) {
 	// Set response headers
 	filename := fmt.Sprintf("%s.epub", lawID)
 	w.Header().Set("Content-Type", "application/epub+zip")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 
 	// Write response
