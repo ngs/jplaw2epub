@@ -42,7 +42,7 @@ func TestProcessTableStructs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			imgProc := &ImageProcessor{}
 			result := processTableStructs(tt.tables, imgProc)
-			
+
 			for _, expected := range tt.contains {
 				if expected != "" && !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, but it didn't", expected)
@@ -96,7 +96,7 @@ func TestProcessTable(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := processTable(tt.table)
-			
+
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, but it didn't", expected)
@@ -113,9 +113,9 @@ func TestProcessTableHeaderRow(t *testing.T) {
 			{Content: "Header 2"},
 		},
 	}
-	
+
 	result := processTableHeaderRow(row)
-	
+
 	expected := []string{"<tr>", "<th", "Header 1", "Header 2"}
 	for _, exp := range expected {
 		if !strings.Contains(result, exp) {
@@ -131,9 +131,9 @@ func TestProcessTableRow(t *testing.T) {
 			{Sentence: []jplaw.Sentence{createTestSentence("Cell 2")}},
 		},
 	}
-	
+
 	result := processTableRow(row)
-	
+
 	expected := []string{"<tr>", "<td", "Cell 1", "Cell 2"}
 	for _, exp := range expected {
 		if !strings.Contains(result, exp) {
@@ -145,7 +145,7 @@ func TestProcessTableRow(t *testing.T) {
 func TestProcessTableHeaderColumn(t *testing.T) {
 	col := &jplaw.TableHeaderColumn{Content: "Header"}
 	result := processTableHeaderColumn(col)
-	
+
 	if !strings.Contains(result, "<th") || !strings.Contains(result, "Header") {
 		t.Errorf("Expected result to contain <th and Header, got %s", result)
 	}
@@ -178,7 +178,7 @@ func TestProcessTableColumn(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := processTableColumn(tt.col)
-			
+
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, got %s", expected, result)
@@ -192,9 +192,9 @@ func TestProcessColumnElement(t *testing.T) {
 	col := &jplaw.Column{
 		Sentence: []jplaw.Sentence{createTestSentence("Column content")},
 	}
-	
+
 	result := processColumnElement(col)
-	
+
 	if !strings.Contains(result, "Column content") {
 		t.Errorf("Expected result to contain 'Column content', got %s", result)
 	}
@@ -204,9 +204,9 @@ func TestProcessPartElement(t *testing.T) {
 	part := &jplaw.Part{
 		PartTitle: jplaw.PartTitle{Content: "Part Title"},
 	}
-	
+
 	result := processPartElement(part)
-	
+
 	if !strings.Contains(result, "Part Title") {
 		t.Errorf("Expected result to contain 'Part Title', got %s", result)
 	}
@@ -214,31 +214,31 @@ func TestProcessPartElement(t *testing.T) {
 
 func TestParseSpan(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		wantNil  bool
-		wantVal  int
+		name    string
+		input   string
+		wantNil bool
+		wantVal int
 	}{
 		{
-			name:     "Valid number",
-			input:    "2",
-			wantNil:  false,
-			wantVal:  2,
+			name:    "Valid number",
+			input:   "2",
+			wantNil: false,
+			wantVal: 2,
 		},
 		{
-			name:     "Invalid string",
-			input:    "invalid",
-			wantNil:  true,
+			name:    "Invalid string",
+			input:   "invalid",
+			wantNil: true,
 		},
 		{
-			name:     "Empty string",
-			input:    "",
-			wantNil:  true,
+			name:    "Empty string",
+			input:   "",
+			wantNil: true,
 		},
 		{
-			name:     "Zero",
-			input:    "0",
-			wantNil:  true,
+			name:    "Zero",
+			input:   "0",
+			wantNil: true,
 		},
 	}
 

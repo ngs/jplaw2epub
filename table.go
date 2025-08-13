@@ -23,7 +23,7 @@ func processTableStructs(tables []jplaw.TableStruct, imgProc *ImageProcessor) st
 }
 
 // processTableStructWithImages processes a single table structure with image support
-func processTableStructWithImages(tableStruct *jplaw.TableStruct, imgProc *ImageProcessor) string {
+func processTableStructWithImages(tableStruct *jplaw.TableStruct, _ *ImageProcessor) string {
 	var body strings.Builder
 
 	// Add table title if present
@@ -46,6 +46,14 @@ func processTableStructWithImages(tableStruct *jplaw.TableStruct, imgProc *Image
 	return body.String()
 }
 
+const (
+	borderStyleSolid  = "solid"
+	borderStyleNone   = "none"
+	borderStyleDashed = "dashed"
+	borderStyleDotted = "dotted"
+	borderStyleDouble = "double"
+)
+
 // processTable processes a table element
 func processTable(table *jplaw.Table) string {
 	var body strings.Builder
@@ -56,7 +64,7 @@ func processTable(table *jplaw.Table) string {
 		tableClass += " vertical-writing"
 	}
 
-	body.WriteString(fmt.Sprintf(`<div class="table-container"><table class="%s">`, tableClass))
+	body.WriteString(fmt.Sprintf(`<div class="table-container"><table class=%q>`, tableClass))
 
 	// Process header rows
 	if len(table.TableHeaderRow) > 0 {
@@ -121,17 +129,17 @@ func processTableColumn(col *jplaw.TableColumn) string {
 	attrs := buildCellAttributes(rowspan, colspan, col.Align, col.Valign, style)
 
 	var content strings.Builder
-	
+
 	// Process sentences
 	for i := range col.Sentence {
 		content.WriteString(col.Sentence[i].HTML())
 	}
-	
+
 	// Process column elements (nested content)
 	for i := range col.Column {
 		content.WriteString(processColumnElement(&col.Column[i]))
 	}
-	
+
 	// Process parts
 	for i := range col.Part {
 		content.WriteString(processPartElement(&col.Part[i]))
@@ -143,37 +151,37 @@ func processTableColumn(col *jplaw.TableColumn) string {
 // processColumnElement processes a column element within a table cell
 func processColumnElement(col *jplaw.Column) string {
 	var content strings.Builder
-	
+
 	for i := range col.Sentence {
 		content.WriteString(col.Sentence[i].HTML())
 	}
-	
+
 	if col.LineBreak {
 		content.WriteString("<br/>")
 	}
-	
+
 	return content.String()
 }
 
 // processPartElement processes a part element within a table cell
 func processPartElement(part *jplaw.Part) string {
 	var content strings.Builder
-	
+
 	// Process part title if present
 	if part.PartTitle.Content != "" {
 		titleHTML := processTextWithRuby(part.PartTitle.Content, part.PartTitle.Ruby)
 		content.WriteString(fmt.Sprintf(`<div class="part-title">%s</div>`, titleHTML))
 	}
-	
+
 	// Process articles
 	for i := range part.Article {
 		// For simplicity, just show article titles in tables
 		if part.Article[i].ArticleTitle != nil {
-			content.WriteString(fmt.Sprintf(`<div class="article-ref">%s</div>`, 
+			content.WriteString(fmt.Sprintf(`<div class="article-ref">%s</div>`,
 				html.EscapeString(part.Article[i].ArticleTitle.Content)))
 		}
 	}
-	
+
 	return content.String()
 }
 
@@ -192,44 +200,31 @@ func parseSpan(span string) *int {
 func buildCellStyle(top, bottom, left, right string) string {
 	var styles []string
 
-	// Apply default border style if not "none"
-	if top != "" && top != "none" {
-		// Use the specified style, or default to "solid #ccc"
-		if top == "solid" || top == "dashed" || top == "dotted" || top == "double" {
-			styles = append(styles, fmt.Sprintf("border-top: 1px %s #ccc", top))
-		} else {
-			styles = append(styles, "border-top: 1px solid #ccc")
+	addBorderStyle := func(border, position string) {
+		if border != "" && border != borderStyleNone {
+			if isValidBorderStyle(border) {
+				styles = append(styles, fmt.Sprintf("border-%s: 1px %s #ccc", position, border))
+			} else {
+				styles = append(styles, fmt.Sprintf("border-%s: 1px solid #ccc", position))
+			}
 		}
 	}
-	if bottom != "" && bottom != "none" {
-		// Use the specified style, or default to "solid #ccc"
-		if bottom == "solid" || bottom == "dashed" || bottom == "dotted" || bottom == "double" {
-			styles = append(styles, fmt.Sprintf("border-bottom: 1px %s #ccc", bottom))
-		} else {
-			styles = append(styles, "border-bottom: 1px solid #ccc")
-		}
-	}
-	if left != "" && left != "none" {
-		// Use the specified style, or default to "solid #ccc"
-		if left == "solid" || left == "dashed" || left == "dotted" || left == "double" {
-			styles = append(styles, fmt.Sprintf("border-left: 1px %s #ccc", left))
-		} else {
-			styles = append(styles, "border-left: 1px solid #ccc")
-		}
-	}
-	if right != "" && right != "none" {
-		// Use the specified style, or default to "solid #ccc"
-		if right == "solid" || right == "dashed" || right == "dotted" || right == "double" {
-			styles = append(styles, fmt.Sprintf("border-right: 1px %s #ccc", right))
-		} else {
-			styles = append(styles, "border-right: 1px solid #ccc")
-		}
-	}
+
+	addBorderStyle(top, "top")
+	addBorderStyle(bottom, "bottom")
+	addBorderStyle(left, "left")
+	addBorderStyle(right, "right")
 
 	if len(styles) == 0 {
 		return ""
 	}
 	return strings.Join(styles, "; ")
+}
+
+// isValidBorderStyle checks if the border style is valid
+func isValidBorderStyle(style string) bool {
+	return style == borderStyleSolid || style == borderStyleDashed ||
+		style == borderStyleDotted || style == borderStyleDouble
 }
 
 // buildCellAttributes builds the attributes for a table cell
@@ -243,13 +238,13 @@ func buildCellAttributes(rowspan, colspan *int, align, valign, style string) str
 		attrs = append(attrs, fmt.Sprintf(`colspan="%d"`, *colspan))
 	}
 	if align != "" {
-		attrs = append(attrs, fmt.Sprintf(`align="%s"`, string(align)))
+		attrs = append(attrs, fmt.Sprintf(`align=%q`, align))
 	}
 	if valign != "" {
-		attrs = append(attrs, fmt.Sprintf(`valign="%s"`, string(valign)))
+		attrs = append(attrs, fmt.Sprintf(`valign=%q`, valign))
 	}
 	if style != "" {
-		attrs = append(attrs, fmt.Sprintf(`style="%s"`, html.EscapeString(style)))
+		attrs = append(attrs, fmt.Sprintf(`style=%q`, html.EscapeString(style)))
 	}
 
 	if len(attrs) == 0 {

@@ -8,6 +8,8 @@ import (
 	"go.ngs.io/jplaw-xml"
 )
 
+const defaultAppdxNoteTitle = "附則"
+
 // processAppdxNotes processes appendix notes
 func processAppdxNotes(book *epub.Epub, notes []jplaw.AppdxNote, imgProc *ImageProcessor) error {
 	if len(notes) == 0 {
@@ -29,7 +31,7 @@ func processAppdxNote(book *epub.Epub, note *jplaw.AppdxNote, idx int, imgProc *
 	body := ""
 
 	// Add title if present
-	title := "附則"
+	title := defaultAppdxNoteTitle
 	if note.AppdxNoteTitle != nil && note.AppdxNoteTitle.Content != "" {
 		title = note.AppdxNoteTitle.Content
 		body += fmt.Sprintf(`<div class="chapter-title">%s</div>`, processTextWithRuby(title, note.AppdxNoteTitle.Ruby))

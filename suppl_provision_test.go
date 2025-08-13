@@ -69,10 +69,10 @@ func TestProcessSupplProvisions(t *testing.T) {
 
 func TestProcessSupplProvision(t *testing.T) {
 	tests := []struct {
-		name     string
+		name      string
 		provision *jplaw.SupplProvision
-		idx      int
-		wantErr  bool
+		idx       int
+		wantErr   bool
 	}{
 		{
 			name: "Provision with articles",
@@ -217,7 +217,7 @@ func TestProcessSupplProvisionAppdxTable(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			imgProc := &ImageProcessor{}
 			result := processSupplProvisionAppdxTable(tt.table, imgProc)
-			
+
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, but it didn't", expected)
@@ -257,7 +257,7 @@ func TestProcessSupplProvisionAppdxStyle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			imgProc := &ImageProcessor{}
 			result := processSupplProvisionAppdxStyle(tt.style, imgProc)
-			
+
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, but it didn't", expected)
@@ -297,7 +297,7 @@ func TestProcessSupplProvisionAppdx(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			imgProc := &ImageProcessor{}
 			result := processSupplProvisionAppdx(tt.appdx, imgProc)
-			
+
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
 					t.Errorf("Expected result to contain %q, but it didn't", expected)

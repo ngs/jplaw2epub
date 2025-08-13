@@ -168,4 +168,3 @@ func processAppdxFigItem(book *epub.Epub, fig *jplaw.AppdxFig, parentFilename st
 
 	return nil
 }
-

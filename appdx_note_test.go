@@ -360,7 +360,7 @@ func TestProcessAppdxTables(t *testing.T) {
 			}
 
 			imgProc := &ImageProcessor{}
-		err = processAppdxTables(book, tt.tables, imgProc)
+			err = processAppdxTables(book, tt.tables, imgProc)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("processAppdxTables() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -412,7 +412,7 @@ func TestProcessAppdxTable(t *testing.T) {
 			}
 
 			imgProc := &ImageProcessor{}
-		err = processAppdxTable(book, tt.table, 0, imgProc)
+			err = processAppdxTable(book, tt.table, 0, imgProc)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("processAppdxTable() error = %v, wantErr %v", err, tt.wantErr)
 			}

@@ -7,14 +7,16 @@ import (
 	"go.ngs.io/jplaw-xml"
 )
 
+const defaultSupplProvisionTitle = "附則"
+
 // processSupplProvisions processes supplementary provisions
 func processSupplProvisions(book *epub.Epub, provisions []jplaw.SupplProvision, imgProc *ImageProcessor) error {
 	if len(provisions) == 0 {
 		return nil
 	}
 
-	for idx, provision := range provisions {
-		if err := processSupplProvision(book, &provision, idx, imgProc); err != nil {
+	for idx := range provisions {
+		if err := processSupplProvision(book, &provisions[idx], idx, imgProc); err != nil {
 			return fmt.Errorf("processing SupplProvision %d: %w", idx, err)
 		}
 	}
@@ -25,76 +27,18 @@ func processSupplProvisions(book *epub.Epub, provisions []jplaw.SupplProvision, 
 // processSupplProvision processes a single supplementary provision
 func processSupplProvision(book *epub.Epub, provision *jplaw.SupplProvision, idx int, imgProc *ImageProcessor) error {
 	filename := fmt.Sprintf("suppl-provision-%d.xhtml", idx)
-	body := ""
 
-	// Add title
-	title := "附則"
-	if provision.SupplProvisionLabel.Content != "" {
-		title = provision.SupplProvisionLabel.Content
-	}
-	body += fmt.Sprintf(`<div class="chapter-title">%s</div>`, processTextWithRuby(title, provision.SupplProvisionLabel.Ruby))
+	// Build the body content
+	body := buildSupplProvisionBody(provision, imgProc)
 
-	// Add amendment law number if present
-	if provision.AmendLawNum != "" {
-		body += fmt.Sprintf(`<div class="amend-law-num">（%s）</div>`, provision.AmendLawNum)
-	}
-
-	// Process chapters if present
-	if len(provision.Chapter) > 0 {
-		for i := range provision.Chapter {
-			chapterTitle := processTextWithRuby(provision.Chapter[i].ChapterTitle.Content, provision.Chapter[i].ChapterTitle.Ruby)
-			body += fmt.Sprintf(`<h3>%s</h3>`, chapterTitle)
-			
-			// Process articles in chapter
-			for j := range provision.Chapter[i].Article {
-				article := &provision.Chapter[i].Article[j]
-				articleTitle := buildArticleTitle(article)
-				body += buildArticleBodyWithImages(article, articleTitle, imgProc)
-			}
-		}
-	}
-
-	// Process direct articles
-	if len(provision.Article) > 0 {
-		for i := range provision.Article {
-			article := &provision.Article[i]
-			articleTitle := buildArticleTitle(article)
-			body += buildArticleBodyWithImages(article, articleTitle, imgProc)
-		}
-	}
-
-	// Process direct paragraphs
-	if len(provision.Paragraph) > 0 {
-		body += processParagraphsWithImages(provision.Paragraph, imgProc)
-	}
-
-	// Process supplementary provision appendix tables
-	if len(provision.SupplProvisionAppdxTable) > 0 {
-		for _, table := range provision.SupplProvisionAppdxTable {
-			body += processSupplProvisionAppdxTable(&table, imgProc)
-		}
-	}
-
-	// Process supplementary provision appendix styles
-	if len(provision.SupplProvisionAppdxStyle) > 0 {
-		for _, style := range provision.SupplProvisionAppdxStyle {
-			body += processSupplProvisionAppdxStyle(&style, imgProc)
-		}
-	}
-
-	// Process supplementary provision appendix
-	if len(provision.SupplProvisionAppdx) > 0 {
-		for _, appdx := range provision.SupplProvisionAppdx {
-			body += processSupplProvisionAppdx(&appdx, imgProc)
-		}
-	}
-
-	// Add the section to the book
+	// Get the section title
+	title := getSupplProvisionTitle(provision)
 	sectionTitle := title
 	if provision.AmendLawNum != "" {
 		sectionTitle = fmt.Sprintf("%s（%s）", title, provision.AmendLawNum)
 	}
-	
+
+	// Add the section to the book
 	_, err := book.AddSection(body, sectionTitle, filename, "")
 	if err != nil {
 		return fmt.Errorf("adding SupplProvision section: %w", err)
@@ -103,10 +47,100 @@ func processSupplProvision(book *epub.Epub, provision *jplaw.SupplProvision, idx
 	return nil
 }
 
+// buildSupplProvisionBody builds the HTML body for a supplementary provision
+func buildSupplProvisionBody(provision *jplaw.SupplProvision, imgProc *ImageProcessor) string {
+	var body string
+
+	// Add title
+	title := getSupplProvisionTitle(provision)
+	body += fmt.Sprintf(`<div class="chapter-title">%s</div>`, processTextWithRuby(title, provision.SupplProvisionLabel.Ruby))
+
+	// Add amendment law number if present
+	if provision.AmendLawNum != "" {
+		body += fmt.Sprintf(`<div class="amend-law-num">（%s）</div>`, provision.AmendLawNum)
+	}
+
+	// Process chapters
+	body += processSupplProvisionChapters(provision, imgProc)
+
+	// Process direct articles
+	body += processSupplProvisionArticles(provision.Article, imgProc)
+
+	// Process direct paragraphs
+	if len(provision.Paragraph) > 0 {
+		body += processParagraphsWithImages(provision.Paragraph, imgProc)
+	}
+
+	// Process appendixes
+	body += processSupplProvisionAppendixes(provision, imgProc)
+
+	return body
+}
+
+// getSupplProvisionTitle gets the title for a supplementary provision
+func getSupplProvisionTitle(provision *jplaw.SupplProvision) string {
+	if provision.SupplProvisionLabel.Content != "" {
+		return provision.SupplProvisionLabel.Content
+	}
+	return defaultSupplProvisionTitle
+}
+
+// processSupplProvisionChapters processes chapters in a supplementary provision
+func processSupplProvisionChapters(provision *jplaw.SupplProvision, imgProc *ImageProcessor) string {
+	if len(provision.Chapter) == 0 {
+		return ""
+	}
+
+	var body string
+	for i := range provision.Chapter {
+		chapterTitle := processTextWithRuby(provision.Chapter[i].ChapterTitle.Content, provision.Chapter[i].ChapterTitle.Ruby)
+		body += fmt.Sprintf(`<h3>%s</h3>`, chapterTitle)
+		body += processSupplProvisionArticles(provision.Chapter[i].Article, imgProc)
+	}
+	return body
+}
+
+// processSupplProvisionArticles processes articles
+func processSupplProvisionArticles(articles []jplaw.Article, imgProc *ImageProcessor) string {
+	if len(articles) == 0 {
+		return ""
+	}
+
+	var body string
+	for i := range articles {
+		article := &articles[i]
+		articleTitle := buildArticleTitle(article)
+		body += buildArticleBodyWithImages(article, articleTitle, imgProc)
+	}
+	return body
+}
+
+// processSupplProvisionAppendixes processes all appendix types
+func processSupplProvisionAppendixes(provision *jplaw.SupplProvision, imgProc *ImageProcessor) string {
+	var body string
+
+	// Process appendix tables
+	for i := range provision.SupplProvisionAppdxTable {
+		body += processSupplProvisionAppdxTable(&provision.SupplProvisionAppdxTable[i], imgProc)
+	}
+
+	// Process appendix styles
+	for i := range provision.SupplProvisionAppdxStyle {
+		body += processSupplProvisionAppdxStyle(&provision.SupplProvisionAppdxStyle[i], imgProc)
+	}
+
+	// Process supplementary provision appendix
+	for i := range provision.SupplProvisionAppdx {
+		body += processSupplProvisionAppdx(&provision.SupplProvisionAppdx[i], imgProc)
+	}
+
+	return body
+}
+
 // processSupplProvisionAppdxTable processes supplementary provision appendix table
 func processSupplProvisionAppdxTable(table *jplaw.SupplProvisionAppdxTable, imgProc *ImageProcessor) string {
 	body := `<div class="suppl-appdx-table">`
-	
+
 	// Add title if present
 	if table.SupplProvisionAppdxTableTitle.Content != "" {
 		body += fmt.Sprintf(`<h4>%s</h4>`,
@@ -131,7 +165,7 @@ func processSupplProvisionAppdxTable(table *jplaw.SupplProvisionAppdxTable, imgP
 // processSupplProvisionAppdxStyle processes supplementary provision appendix style
 func processSupplProvisionAppdxStyle(style *jplaw.SupplProvisionAppdxStyle, imgProc *ImageProcessor) string {
 	body := `<div class="suppl-appdx-style">`
-	
+
 	// Add title if present
 	if style.SupplProvisionAppdxStyleTitle.Content != "" {
 		body += fmt.Sprintf(`<h4>%s</h4>`,
@@ -154,9 +188,9 @@ func processSupplProvisionAppdxStyle(style *jplaw.SupplProvisionAppdxStyle, imgP
 }
 
 // processSupplProvisionAppdx processes supplementary provision appendix
-func processSupplProvisionAppdx(appdx *jplaw.SupplProvisionAppdx, imgProc *ImageProcessor) string {
+func processSupplProvisionAppdx(appdx *jplaw.SupplProvisionAppdx, _ *ImageProcessor) string {
 	body := `<div class="suppl-appdx">`
-	
+
 	// Add arithmetic formula number if present
 	if appdx.ArithFormulaNum != nil && appdx.ArithFormulaNum.Content != "" {
 		body += fmt.Sprintf(`<div class="arith-formula-num">%s</div>`,
