@@ -286,4 +286,3 @@ func convertMissionToModel(m *jplaw.Mission) *model.Mission {
 	}
 	return &result
 }
-
