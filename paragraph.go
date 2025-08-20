@@ -12,7 +12,7 @@ import (
 type paragraphProcessor struct {
 	inList         bool
 	body           string
-	imageProcessor *ImageProcessor
+	imageProcessor ImageProcessorInterface
 }
 
 // processParagraphs processes all paragraphs in an article
@@ -21,7 +21,7 @@ func processParagraphs(paragraphs []jplaw.Paragraph) string {
 }
 
 // processParagraphWithImages processes a single paragraph with image support
-func processParagraphWithImages(para *jplaw.Paragraph, imgProc *ImageProcessor) string {
+func processParagraphWithImages(para *jplaw.Paragraph, imgProc ImageProcessorInterface) string {
 	p := &paragraphProcessor{imageProcessor: imgProc}
 
 	if para.Num > 0 {
@@ -72,7 +72,7 @@ func processParagraphWithImages(para *jplaw.Paragraph, imgProc *ImageProcessor) 
 }
 
 // processParagraphsWithImages processes all paragraphs with image support
-func processParagraphsWithImages(paragraphs []jplaw.Paragraph, imgProc *ImageProcessor) string {
+func processParagraphsWithImages(paragraphs []jplaw.Paragraph, imgProc ImageProcessorInterface) string {
 	p := &paragraphProcessor{imageProcessor: imgProc}
 
 	for i := range paragraphs {

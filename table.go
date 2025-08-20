@@ -10,7 +10,7 @@ import (
 )
 
 // processTableStructs processes multiple table structures
-func processTableStructs(tables []jplaw.TableStruct, imgProc *ImageProcessor) string {
+func processTableStructs(tables []jplaw.TableStruct, imgProc ImageProcessorInterface) string {
 	if len(tables) == 0 {
 		return ""
 	}
@@ -23,7 +23,7 @@ func processTableStructs(tables []jplaw.TableStruct, imgProc *ImageProcessor) st
 }
 
 // processTableStructWithImages processes a single table structure with image support
-func processTableStructWithImages(tableStruct *jplaw.TableStruct, _ *ImageProcessor) string {
+func processTableStructWithImages(tableStruct *jplaw.TableStruct, _ ImageProcessorInterface) string {
 	var body strings.Builder
 
 	// Add table title if present

@@ -8,7 +8,7 @@ import (
 )
 
 // processChapterWithImages processes a single chapter with image support
-func processChapterWithImages(book *epub.Epub, chapter *jplaw.Chapter, chapterIdx int, imgProc *ImageProcessor) error {
+func processChapterWithImages(book *epub.Epub, chapter *jplaw.Chapter, chapterIdx int, imgProc ImageProcessorInterface) error {
 	chapterFilename := fmt.Sprintf("chapter-%d.xhtml", chapterIdx)
 	body := buildChapterBody(chapter)
 

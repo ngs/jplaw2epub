@@ -10,7 +10,7 @@ import (
 const htmlDivEnd = "</div>"
 
 // processAppdxStyles processes AppdxStyle elements (appendix styles)
-func processAppdxStyles(book *epub.Epub, styles []jplaw.AppdxStyle, imgProc *ImageProcessor) error {
+func processAppdxStyles(book *epub.Epub, styles []jplaw.AppdxStyle, imgProc ImageProcessorInterface) error {
 	if len(styles) == 0 {
 		return nil
 	}
@@ -36,7 +36,7 @@ func processAppdxStyles(book *epub.Epub, styles []jplaw.AppdxStyle, imgProc *Ima
 }
 
 // processAppdxStyle processes a single AppdxStyle
-func processAppdxStyle(book *epub.Epub, style *jplaw.AppdxStyle, parentFilename string, idx int, imgProc *ImageProcessor) error {
+func processAppdxStyle(book *epub.Epub, style *jplaw.AppdxStyle, parentFilename string, idx int, imgProc ImageProcessorInterface) error {
 	// Build the body content
 	body := ""
 
@@ -78,7 +78,7 @@ func processAppdxStyle(book *epub.Epub, style *jplaw.AppdxStyle, parentFilename 
 }
 
 // processAppdxRemark processes a single remark in appendix
-func processAppdxRemark(remark *jplaw.Remarks, imgProc *ImageProcessor) string {
+func processAppdxRemark(remark *jplaw.Remarks, imgProc ImageProcessorInterface) string {
 	html := "<div class='appdx-remarks'>"
 	html += "<div class='remark'>"
 
@@ -104,7 +104,7 @@ func processAppdxRemark(remark *jplaw.Remarks, imgProc *ImageProcessor) string {
 }
 
 // processAppdxFig processes AppdxFig elements (appendix figures)
-func processAppdxFig(book *epub.Epub, figures []jplaw.AppdxFig, imgProc *ImageProcessor) error {
+func processAppdxFig(book *epub.Epub, figures []jplaw.AppdxFig, imgProc ImageProcessorInterface) error {
 	if len(figures) == 0 {
 		return nil
 	}
@@ -130,7 +130,7 @@ func processAppdxFig(book *epub.Epub, figures []jplaw.AppdxFig, imgProc *ImagePr
 }
 
 // processAppdxFigItem processes a single AppdxFig
-func processAppdxFigItem(book *epub.Epub, fig *jplaw.AppdxFig, parentFilename string, idx int, imgProc *ImageProcessor) error {
+func processAppdxFigItem(book *epub.Epub, fig *jplaw.AppdxFig, parentFilename string, idx int, imgProc ImageProcessorInterface) error {
 	// Build the body content
 	body := ""
 

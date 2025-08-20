@@ -10,11 +10,11 @@ import (
 
 // StyleProcessor handles StyleStruct processing
 type StyleProcessor struct {
-	imageProcessor *ImageProcessor
+	imageProcessor ImageProcessorInterface
 }
 
 // NewStyleProcessor creates a new style processor
-func NewStyleProcessor(imgProc *ImageProcessor) *StyleProcessor {
+func NewStyleProcessor(imgProc ImageProcessorInterface) *StyleProcessor {
 	return &StyleProcessor{
 		imageProcessor: imgProc,
 	}
@@ -107,7 +107,7 @@ func (sp *StyleProcessor) processStyleContent(content string) string {
 }
 
 // ProcessStyleStructs processes multiple StyleStructs
-func ProcessStyleStructs(styles []jplaw.StyleStruct, imgProc *ImageProcessor) string {
+func ProcessStyleStructs(styles []jplaw.StyleStruct, imgProc ImageProcessorInterface) string {
 	if len(styles) == 0 {
 		return ""
 	}
