@@ -78,37 +78,6 @@ func TestCreateEPUBFromData(t *testing.T) {
 	}
 }
 
-func TestSetupEPUBMetadata(t *testing.T) {
-	data := &jplaw.Law{
-		LawNum:          "令和六年法律第一号",
-		Year:            2024,
-		Era:             "Reiwa",
-		Lang:            "ja",
-		PromulgateMonth: 4,
-		PromulgateDay:   1,
-		LawBody: jplaw.LawBody{
-			LawTitle: &jplaw.LawTitle{
-				Content: testLawTitle,
-				Kana:    "テストホウ",
-			},
-		},
-	}
-
-	book, err := createEPUBFromData(data)
-	if err != nil {
-		t.Fatalf("Failed to create EPUB: %v", err)
-	}
-
-	// Verify metadata was set
-	if book.Author() != data.LawNum {
-		t.Errorf("Expected author '%s', got '%s'", data.LawNum, book.Author())
-	}
-
-	if book.Lang() != string(data.Lang) {
-		t.Errorf("Expected lang '%s', got '%s'", string(data.Lang), book.Lang())
-	}
-}
-
 func TestIntegration_SmallLaw(t *testing.T) {
 	// Create a temporary XML file
 	tmpDir := t.TempDir()

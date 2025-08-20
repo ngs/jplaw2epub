@@ -29,21 +29,39 @@ func processRubyElements(rubies []jplaw.Ruby) string {
 
 // processTextWithRuby processes mixed content (text + Ruby elements)
 // Note: Due to XML parsing limitations, Ruby elements that were inline in the original
-// XML are extracted separately, losing their position. As a workaround, we append them.
+// XML are extracted separately, losing their position. As a workaround, we append them
+// at the end of the text.
 func processTextWithRuby(content string, rubies []jplaw.Ruby) string {
 	if len(rubies) == 0 {
 		return html.EscapeString(content)
 	}
 
-	// For now, we just append Ruby elements at the end
-	// This is not ideal but the jplaw-xml library doesn't preserve position
-	var result strings.Builder
-	if content != "" {
-		result.WriteString(html.EscapeString(content))
+	// Build result with escaped content first
+	result := html.EscapeString(content)
+
+	// Append all ruby elements at the end
+	// This is the expected behavior based on the jplaw-xml library's structure
+	for _, ruby := range rubies {
+		result += rubyHTML(&ruby)
 	}
 
-	// Add Ruby elements (they will appear at the end of the text)
-	// In the case of "較(こう)正", this will show the Ruby annotation
-	result.WriteString(processRubyElements(rubies))
+	return result
+}
+
+// rubyHTML creates HTML ruby element from a Ruby struct
+func rubyHTML(ruby *jplaw.Ruby) string {
+	if len(ruby.Rt) == 0 {
+		return html.EscapeString(ruby.Content)
+	}
+
+	var result strings.Builder
+	result.WriteString("<ruby>")
+	result.WriteString(html.EscapeString(ruby.Content))
+	for _, rt := range ruby.Rt {
+		result.WriteString("<rt>")
+		result.WriteString(html.EscapeString(rt.Content))
+		result.WriteString("</rt>")
+	}
+	result.WriteString("</ruby>")
 	return result.String()
 }
