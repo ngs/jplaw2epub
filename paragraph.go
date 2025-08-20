@@ -20,6 +20,57 @@ func processParagraphs(paragraphs []jplaw.Paragraph) string {
 	return processParagraphsWithImages(paragraphs, nil)
 }
 
+// processParagraphWithImages processes a single paragraph with image support
+func processParagraphWithImages(para *jplaw.Paragraph, imgProc *ImageProcessor) string {
+	p := &paragraphProcessor{imageProcessor: imgProc}
+
+	if para.Num > 0 {
+		// For numbered paragraphs, we need to handle them differently
+		// Create a single-item list
+		p.body += openListWithStyle([]string{para.ParagraphNum.Content})
+		p.body += htmlLI
+		p.addParagraphNumber(para)
+		p.addParagraphSentences(para)
+
+		if len(para.Item) > 0 {
+			p.body += processItemsWithImages(para.Item, p.imageProcessor)
+		}
+
+		// Process FigStruct if present
+		if len(para.FigStruct) > 0 {
+			for _, fig := range para.FigStruct {
+				if p.imageProcessor != nil {
+					if html, err := p.imageProcessor.ProcessFigStruct(&fig); err == nil {
+						p.body += html
+					}
+				}
+			}
+		}
+
+		// Process TableStruct if present
+		if len(para.TableStruct) > 0 {
+			p.body += processTableStructs(para.TableStruct, p.imageProcessor)
+		}
+
+		// Process StyleStruct if present
+		if len(para.StyleStruct) > 0 {
+			p.body += ProcessStyleStructs(para.StyleStruct, p.imageProcessor)
+		}
+
+		// Process List if present
+		if len(para.List) > 0 {
+			p.body += processLists(para.List)
+		}
+
+		p.body += htmlLIEnd
+		p.body += htmlOLEnd
+	} else {
+		p.processRegularParagraph(para)
+	}
+
+	return p.body
+}
+
 // processParagraphsWithImages processes all paragraphs with image support
 func processParagraphsWithImages(paragraphs []jplaw.Paragraph, imgProc *ImageProcessor) string {
 	p := &paragraphProcessor{imageProcessor: imgProc}

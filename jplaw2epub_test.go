@@ -3,7 +3,6 @@ package jplaw2epub
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"go.ngs.io/jplaw-xml"
@@ -325,114 +324,5 @@ func TestProcessChaptersWithOptions(t *testing.T) {
 				t.Errorf("processChaptersWithOptions() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func TestBuildChapterBody(t *testing.T) {
-	tests := []struct {
-		name     string
-		chapter  *jplaw.Chapter
-		contains []string
-	}{
-		{
-			name: "Chapter with title only",
-			chapter: &jplaw.Chapter{
-				ChapterTitle: jplaw.ChapterTitle{
-					Content: "第一章　総則",
-				},
-			},
-			contains: []string{
-				"第一章　総則",
-				"chapter-title",
-			},
-		},
-		{
-			name: "Chapter with sections",
-			chapter: &jplaw.Chapter{
-				ChapterTitle: jplaw.ChapterTitle{
-					Content: "第一章",
-				},
-				Section: []jplaw.Section{
-					{
-						SectionTitle: jplaw.SectionTitle{
-							Content: "第一節",
-						},
-						Article: []jplaw.Article{
-							{
-								ArticleTitle: &jplaw.ArticleTitle{
-									Content: "第一条",
-								},
-							},
-						},
-					},
-				},
-			},
-			contains: []string{
-				"第一章",
-				"第一節",
-				"第一条",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := buildChapterBody(tt.chapter)
-			for _, expected := range tt.contains {
-				if !strings.Contains(result, expected) {
-					t.Errorf("buildChapterBody() should contain %q\ngot: %v", expected, result)
-				}
-			}
-		})
-	}
-}
-
-func TestBuildSectionsHTML(t *testing.T) {
-	sections := []jplaw.Section{
-		{
-			SectionTitle: jplaw.SectionTitle{
-				Content: "第一節　総則",
-			},
-			Article: []jplaw.Article{
-				{
-					ArticleTitle: &jplaw.ArticleTitle{
-						Content: "第一条",
-					},
-				},
-				{
-					ArticleTitle: &jplaw.ArticleTitle{
-						Content: "第二条",
-					},
-				},
-			},
-		},
-		{
-			SectionTitle: jplaw.SectionTitle{
-				Content: "第二節　定義",
-			},
-			Article: []jplaw.Article{
-				{
-					ArticleTitle: &jplaw.ArticleTitle{
-						Content: "第三条",
-					},
-				},
-			},
-		},
-	}
-
-	result := buildSectionsHTML(sections)
-
-	expected := []string{
-		"第一節　総則",
-		"第二節　定義",
-		"第一条 から 第二条 まで",
-		"第三条 から 第三条 まで",
-		"sections",
-	}
-
-	for _, exp := range expected {
-		if !strings.Contains(result, exp) {
-			t.Errorf("buildSectionsHTML() should contain %q\ngot: %v", exp, result)
-		}
 	}
 }

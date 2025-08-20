@@ -180,67 +180,15 @@ func createImageProcessor(book *epub.Epub, opts *EPUBOptions) *ImageProcessor {
 	return imgProc
 }
 
-// processMainProvision processes the main provision content
-func processMainProvision(book *epub.Epub, mainProv *jplaw.MainProvision, imgProc *ImageProcessor) error {
-	if len(mainProv.Chapter) > 0 {
-		// Process chapters
-		for i := range mainProv.Chapter {
-			if err := processChapterWithImages(book, &mainProv.Chapter[i], i, imgProc); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	// No chapters, process direct articles or paragraphs
-	if len(mainProv.Article) == 0 && len(mainProv.Paragraph) == 0 {
-		return nil
-	}
-
-	mainFilename := "main-content.xhtml"
-	body := ""
-
-	// Process direct paragraphs
-	if len(mainProv.Paragraph) > 0 {
-		body += processParagraphsWithImages(mainProv.Paragraph, imgProc)
-	}
-
-	// Process direct articles
-	for i := range mainProv.Article {
-		article := &mainProv.Article[i]
-		articleTitle := buildArticleTitle(article)
-		body += buildArticleBodyWithImages(article, articleTitle, imgProc)
-	}
-
-	// Add the main content as a section
-	if body != "" {
-		_, err := book.AddSection(body, "本文", mainFilename, "")
-		if err != nil {
-			return fmt.Errorf("adding main content: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// setupEPUBMetadata sets up the basic EPUB metadata
-func setupEPUBMetadata(book *epub.Epub, data *jplaw.Law) {
-	book.SetAuthor(data.LawNum)
-	book.SetLang(string(data.Lang))
-
-	// Set description
-	eraStr := getEraString(data.Era)
-	description := fmt.Sprintf("公布日: %s %d年%d月%d日", eraStr, data.Year, data.PromulgateMonth, data.PromulgateDay)
-	description += fmt.Sprintf("\n法令番号: %s", data.LawNum)
-	lawTitleWithRuby := processTextWithRuby(data.LawBody.LawTitle.Content, data.LawBody.LawTitle.Ruby)
-	description += fmt.Sprintf("\n現行法令名: %s %s", lawTitleWithRuby, data.LawBody.LawTitle.Kana)
-	book.SetDescription(description)
-}
-
 // processChaptersWithOptions processes all chapters with image support
 func processChaptersWithOptions(book *epub.Epub, data *jplaw.Law, opts *EPUBOptions) error {
 	// Create image processor if API client is available
 	imgProc := createImageProcessor(book, opts)
+
+	// Add title page as the first page
+	if err := addTitlePage(book, data); err != nil {
+		return fmt.Errorf("adding title page: %w", err)
+	}
 
 	// Process main provision content
 	if err := processMainProvision(book, &data.LawBody.MainProvision, imgProc); err != nil {
@@ -283,68 +231,4 @@ func processChaptersWithOptions(book *epub.Epub, data *jplaw.Law, opts *EPUBOpti
 	}
 
 	return nil
-}
-
-// processChapterWithImages processes a single chapter with image support
-func processChapterWithImages(book *epub.Epub, chapter *jplaw.Chapter, chapterIdx int, imgProc *ImageProcessor) error {
-	chapterFilename := fmt.Sprintf("chapter-%d.xhtml", chapterIdx)
-	body := buildChapterBody(chapter)
-
-	chapterFilename, err := book.AddSection(body, chapter.ChapterTitle.Content, chapterFilename, "")
-	if err != nil {
-		return fmt.Errorf("adding chapter: %w", err)
-	}
-
-	// Process direct articles under chapter
-	if len(chapter.Article) > 0 {
-		if err := processArticlesWithImages(book, chapter.Article, chapterFilename, chapterIdx, -1, imgProc); err != nil {
-			return fmt.Errorf("processing chapter articles: %w", err)
-		}
-	}
-
-	// Process articles within sections
-	for sIdx := range chapter.Section {
-		section := &chapter.Section[sIdx]
-		if len(section.Article) > 0 {
-			if err := processArticlesWithImages(book, section.Article, chapterFilename, chapterIdx, sIdx, imgProc); err != nil {
-				return fmt.Errorf("processing section articles: %w", err)
-			}
-		}
-	}
-
-	return nil
-}
-
-// buildChapterBody builds the HTML body for a chapter
-func buildChapterBody(chapter *jplaw.Chapter) string {
-	chapterTitleHTML := processTextWithRuby(chapter.ChapterTitle.Content, chapter.ChapterTitle.Ruby)
-	body := fmt.Sprintf(`<div class="chapter-title">%s</div>`, chapterTitleHTML)
-
-	// Process Sections if any
-	if len(chapter.Section) > 0 {
-		body += buildSectionsHTML(chapter.Section)
-	}
-
-	return body
-}
-
-// buildSectionsHTML builds HTML for sections
-func buildSectionsHTML(sections []jplaw.Section) string {
-	body := "<div class='sections'>"
-
-	for sIdx := range sections {
-		section := &sections[sIdx]
-		sectionTitleHTML := processTextWithRuby(section.SectionTitle.Content, section.SectionTitle.Ruby)
-		body += fmt.Sprintf("<h3>%s</h3>", sectionTitleHTML)
-
-		// Add a note about articles in this section
-		if len(section.Article) > 0 {
-			body += fmt.Sprintf("<p>（%s から %s まで）</p>",
-				section.Article[0].ArticleTitle.Content,
-				section.Article[len(section.Article)-1].ArticleTitle.Content)
-		}
-	}
-
-	body += htmlDivEnd
-	return body
 }

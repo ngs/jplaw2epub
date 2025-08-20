@@ -2,8 +2,6 @@ package jplaw2epub
 
 import (
 	"testing"
-
-	"go.ngs.io/jplaw-xml"
 )
 
 func TestIsListNumber(t *testing.T) {
@@ -52,29 +50,6 @@ func TestGetListStyleType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := getListStyleType(tt.titles); got != tt.want {
 				t.Errorf("getListStyleType(%v) = %v, want %v", tt.titles, got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGetEraString(t *testing.T) {
-	tests := []struct {
-		name string
-		era  jplaw.Era
-		want string
-	}{
-		{"Meiji", jplaw.EraMeiji, "明治"},
-		{"Taisho", jplaw.EraTaisho, "大正"},
-		{"Showa", jplaw.EraShowa, "昭和"},
-		{"Heisei", jplaw.EraHeisei, "平成"},
-		{"Reiwa", jplaw.EraReiwa, "令和"},
-		{"Unknown", jplaw.Era("Unknown"), ""},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getEraString(tt.era); got != tt.want {
-				t.Errorf("getEraString(%v) = %v, want %v", tt.era, got, tt.want)
 			}
 		})
 	}
