@@ -11,7 +11,7 @@ import (
 const defaultAppdxNoteTitle = "附則"
 
 // processAppdxNotes processes appendix notes
-func processAppdxNotes(book *epub.Epub, notes []jplaw.AppdxNote, imgProc *ImageProcessor) error {
+func processAppdxNotes(book *epub.Epub, notes []jplaw.AppdxNote, imgProc ImageProcessorInterface) error {
 	if len(notes) == 0 {
 		return nil
 	}
@@ -26,7 +26,7 @@ func processAppdxNotes(book *epub.Epub, notes []jplaw.AppdxNote, imgProc *ImageP
 }
 
 // processAppdxNote processes a single appendix note
-func processAppdxNote(book *epub.Epub, note *jplaw.AppdxNote, idx int, imgProc *ImageProcessor) error {
+func processAppdxNote(book *epub.Epub, note *jplaw.AppdxNote, idx int, imgProc ImageProcessorInterface) error {
 	filename := fmt.Sprintf("appdx-note-%d.xhtml", idx)
 	body := ""
 
@@ -81,7 +81,7 @@ func processAppdxNote(book *epub.Epub, note *jplaw.AppdxNote, idx int, imgProc *
 }
 
 // processNoteStruct processes a NoteStruct
-func processNoteStruct(noteStruct *jplaw.NoteStruct, imgProc *ImageProcessor) string {
+func processNoteStruct(noteStruct *jplaw.NoteStruct, imgProc ImageProcessorInterface) string {
 	body := `<div class="note-struct">`
 
 	// Add title if present
@@ -108,7 +108,7 @@ func processNoteStruct(noteStruct *jplaw.NoteStruct, imgProc *ImageProcessor) st
 }
 
 // processNoteContent processes the inner content of a Note
-func processNoteContent(content string, imgProc *ImageProcessor) string {
+func processNoteContent(content string, imgProc ImageProcessorInterface) string {
 	// Parse the XML content as a fragment
 	// We'll wrap it in a root element to make it valid XML
 	wrappedContent := "<root>" + content + "</root>"
@@ -158,7 +158,7 @@ func processRemarks(remarks *jplaw.Remarks) string {
 }
 
 // processAppdxTables processes appendix tables
-func processAppdxTables(book *epub.Epub, tables []jplaw.AppdxTable, imgProc *ImageProcessor) error {
+func processAppdxTables(book *epub.Epub, tables []jplaw.AppdxTable, imgProc ImageProcessorInterface) error {
 	if len(tables) == 0 {
 		return nil
 	}
@@ -173,7 +173,7 @@ func processAppdxTables(book *epub.Epub, tables []jplaw.AppdxTable, imgProc *Ima
 }
 
 // processAppdxTable processes a single appendix table
-func processAppdxTable(book *epub.Epub, table *jplaw.AppdxTable, idx int, imgProc *ImageProcessor) error {
+func processAppdxTable(book *epub.Epub, table *jplaw.AppdxTable, idx int, imgProc ImageProcessorInterface) error {
 	filename := fmt.Sprintf("appdx-table-%d.xhtml", idx)
 	body := ""
 

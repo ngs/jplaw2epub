@@ -20,7 +20,7 @@ import (
 
 // ImageProcessor handles image processing for EPUB
 type ImageProcessor struct {
-	client         *lawapi.Client
+	client         APIClient
 	revisionID     string
 	book           *epub.Epub
 	imageCache     map[string]string // maps src to EPUB internal path
@@ -28,7 +28,7 @@ type ImageProcessor struct {
 }
 
 // NewImageProcessor creates a new image processor
-func NewImageProcessor(client *lawapi.Client, revisionID string, book *epub.Epub) *ImageProcessor {
+func NewImageProcessor(client APIClient, revisionID string, book *epub.Epub) *ImageProcessor {
 	return &ImageProcessor{
 		client:         client,
 		revisionID:     revisionID,

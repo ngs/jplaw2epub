@@ -13,7 +13,7 @@ func processItems(items []jplaw.Item) string {
 }
 
 // processItemsWithImages processes a list of items with image support
-func processItemsWithImages(items []jplaw.Item, imgProc *ImageProcessor) string {
+func processItemsWithImages(items []jplaw.Item, imgProc ImageProcessorInterface) string {
 	if len(items) == 0 {
 		return ""
 	}
@@ -36,7 +36,7 @@ func processItem(item *jplaw.Item) string {
 }
 
 // processItemWithImages processes a single item with image support
-func processItemWithImages(item *jplaw.Item, imgProc *ImageProcessor) string {
+func processItemWithImages(item *jplaw.Item, imgProc ImageProcessorInterface) string {
 	body := htmlLI
 
 	// Add item title if not a list number
@@ -88,7 +88,7 @@ func processItemWithImages(item *jplaw.Item, imgProc *ImageProcessor) string {
 }
 
 // processSubitem1ListWithImages processes a list of Subitem1 with image support
-func processSubitem1ListWithImages(subitems []jplaw.Subitem1, imgProc *ImageProcessor) string {
+func processSubitem1ListWithImages(subitems []jplaw.Subitem1, imgProc ImageProcessorInterface) string {
 	titles := collectSubitem1Titles(subitems)
 	body := openListWithStyle(titles)
 
@@ -106,7 +106,7 @@ func processSubitem1(subitem *jplaw.Subitem1) string {
 }
 
 // processSubitem1WithImages processes a single Subitem1 with image support
-func processSubitem1WithImages(subitem *jplaw.Subitem1, imgProc *ImageProcessor) string {
+func processSubitem1WithImages(subitem *jplaw.Subitem1, imgProc ImageProcessorInterface) string {
 	body := htmlLI
 
 	// Add title if not a list number
@@ -145,7 +145,7 @@ func processSubitem1WithImages(subitem *jplaw.Subitem1, imgProc *ImageProcessor)
 }
 
 // processSubitem2ListWithImages processes a list of Subitem2 with image support
-func processSubitem2ListWithImages(subitems []jplaw.Subitem2, imgProc *ImageProcessor) string {
+func processSubitem2ListWithImages(subitems []jplaw.Subitem2, imgProc ImageProcessorInterface) string {
 	titles := collectSubitem2Titles(subitems)
 	body := openListWithStyle(titles)
 
@@ -163,7 +163,7 @@ func processSubitem2(subitem *jplaw.Subitem2) string {
 }
 
 // processSubitem2WithImages processes a single Subitem2 with image support
-func processSubitem2WithImages(subitem *jplaw.Subitem2, imgProc *ImageProcessor) string {
+func processSubitem2WithImages(subitem *jplaw.Subitem2, imgProc ImageProcessorInterface) string {
 	body := htmlLI
 
 	// Add title if not a list number

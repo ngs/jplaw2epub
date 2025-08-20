@@ -8,7 +8,7 @@ import (
 )
 
 // processAppdxFormats processes appendix formats
-func processAppdxFormats(book *epub.Epub, formats []jplaw.AppdxFormat, imgProc *ImageProcessor) error {
+func processAppdxFormats(book *epub.Epub, formats []jplaw.AppdxFormat, imgProc ImageProcessorInterface) error {
 	if len(formats) == 0 {
 		return nil
 	}
@@ -23,7 +23,7 @@ func processAppdxFormats(book *epub.Epub, formats []jplaw.AppdxFormat, imgProc *
 }
 
 // processAppdxFormat processes a single appendix format
-func processAppdxFormat(book *epub.Epub, format *jplaw.AppdxFormat, idx int, imgProc *ImageProcessor) error {
+func processAppdxFormat(book *epub.Epub, format *jplaw.AppdxFormat, idx int, imgProc ImageProcessorInterface) error {
 	filename := fmt.Sprintf("appdx-format-%d.xhtml", idx)
 	body := ""
 
@@ -55,7 +55,7 @@ func processAppdxFormat(book *epub.Epub, format *jplaw.AppdxFormat, idx int, img
 }
 
 // processFormatStruct processes a FormatStruct
-func processFormatStruct(formatStruct *jplaw.FormatStruct, imgProc *ImageProcessor) string {
+func processFormatStruct(formatStruct *jplaw.FormatStruct, imgProc ImageProcessorInterface) string {
 	body := `<div class="format-struct">`
 
 	// Add title if present
@@ -77,7 +77,7 @@ func processFormatStruct(formatStruct *jplaw.FormatStruct, imgProc *ImageProcess
 }
 
 // processFormat processes a Format element which contains raw XML
-func processFormat(format *jplaw.Format, imgProc *ImageProcessor) string {
+func processFormat(format *jplaw.Format, imgProc ImageProcessorInterface) string {
 	body := `<div class="format-content">`
 
 	// Format.Content contains raw XML that may include Fig elements
@@ -104,7 +104,7 @@ func containsFigElement(content string) bool {
 }
 
 // processEmbeddedFigs processes Fig elements embedded in XML content
-func processEmbeddedFigs(content string, _ *ImageProcessor) string {
+func processEmbeddedFigs(content string, _ ImageProcessorInterface) string {
 	// For simplicity, just display the content
 	// In a real implementation, we'd parse the XML and extract Fig elements
 	return fmt.Sprintf(`<div class="embedded-content">%s</div>`, content)

@@ -8,7 +8,7 @@ import (
 )
 
 // processMainProvision processes the main provision content
-func processMainProvision(book *epub.Epub, mainProv *jplaw.MainProvision, imgProc *ImageProcessor) error {
+func processMainProvision(book *epub.Epub, mainProv *jplaw.MainProvision, imgProc ImageProcessorInterface) error {
 	if len(mainProv.Chapter) > 0 {
 		// Process chapters
 		for i := range mainProv.Chapter {

@@ -18,7 +18,7 @@ func processArticlesWithImages(
 	articles []jplaw.Article,
 	parentFilename string,
 	chapterIdx, sectionIdx int,
-	imgProc *ImageProcessor,
+	imgProc ImageProcessorInterface,
 ) error {
 	for j := range articles {
 		if err := processArticleWithImages(book, &articles[j], parentFilename, chapterIdx, sectionIdx, j, imgProc); err != nil {
@@ -39,7 +39,7 @@ func processArticleWithImages(
 	article *jplaw.Article,
 	parentFilename string,
 	chapterIdx, sectionIdx, articleIdx int,
-	imgProc *ImageProcessor,
+	imgProc ImageProcessorInterface,
 ) error {
 	subFilename := buildArticleFilename(chapterIdx, sectionIdx, articleIdx)
 	articleTitle := buildArticleTitle(article)
@@ -67,7 +67,7 @@ func buildArticleBody(article *jplaw.Article, articleTitle string) string {
 }
 
 // buildArticleBodyWithImages builds the HTML body for an article with image support
-func buildArticleBodyWithImages(article *jplaw.Article, articleTitle string, imgProc *ImageProcessor) string {
+func buildArticleBodyWithImages(article *jplaw.Article, articleTitle string, imgProc ImageProcessorInterface) string {
 	body := fmt.Sprintf("<h3>%s</h3>", articleTitle)
 	body += processParagraphsWithImages(article.Paragraph, imgProc)
 	return body

@@ -10,7 +10,7 @@ import (
 const defaultSupplProvisionTitle = "附則"
 
 // processSupplProvisions processes supplementary provisions
-func processSupplProvisions(book *epub.Epub, provisions []jplaw.SupplProvision, imgProc *ImageProcessor) error {
+func processSupplProvisions(book *epub.Epub, provisions []jplaw.SupplProvision, imgProc ImageProcessorInterface) error {
 	if len(provisions) == 0 {
 		return nil
 	}
@@ -25,7 +25,7 @@ func processSupplProvisions(book *epub.Epub, provisions []jplaw.SupplProvision, 
 }
 
 // processSupplProvision processes a single supplementary provision
-func processSupplProvision(book *epub.Epub, provision *jplaw.SupplProvision, idx int, imgProc *ImageProcessor) error {
+func processSupplProvision(book *epub.Epub, provision *jplaw.SupplProvision, idx int, imgProc ImageProcessorInterface) error {
 	filename := fmt.Sprintf("suppl-provision-%d.xhtml", idx)
 
 	// Build the body content
@@ -48,7 +48,7 @@ func processSupplProvision(book *epub.Epub, provision *jplaw.SupplProvision, idx
 }
 
 // buildSupplProvisionBody builds the HTML body for a supplementary provision
-func buildSupplProvisionBody(provision *jplaw.SupplProvision, imgProc *ImageProcessor) string {
+func buildSupplProvisionBody(provision *jplaw.SupplProvision, imgProc ImageProcessorInterface) string {
 	var body string
 
 	// Add title
@@ -86,7 +86,7 @@ func getSupplProvisionTitle(provision *jplaw.SupplProvision) string {
 }
 
 // processSupplProvisionChapters processes chapters in a supplementary provision
-func processSupplProvisionChapters(provision *jplaw.SupplProvision, imgProc *ImageProcessor) string {
+func processSupplProvisionChapters(provision *jplaw.SupplProvision, imgProc ImageProcessorInterface) string {
 	if len(provision.Chapter) == 0 {
 		return ""
 	}
@@ -101,7 +101,7 @@ func processSupplProvisionChapters(provision *jplaw.SupplProvision, imgProc *Ima
 }
 
 // processSupplProvisionArticles processes articles
-func processSupplProvisionArticles(articles []jplaw.Article, imgProc *ImageProcessor) string {
+func processSupplProvisionArticles(articles []jplaw.Article, imgProc ImageProcessorInterface) string {
 	if len(articles) == 0 {
 		return ""
 	}
@@ -116,7 +116,7 @@ func processSupplProvisionArticles(articles []jplaw.Article, imgProc *ImageProce
 }
 
 // processSupplProvisionAppendixes processes all appendix types
-func processSupplProvisionAppendixes(provision *jplaw.SupplProvision, imgProc *ImageProcessor) string {
+func processSupplProvisionAppendixes(provision *jplaw.SupplProvision, imgProc ImageProcessorInterface) string {
 	var body string
 
 	// Process appendix tables
@@ -138,7 +138,7 @@ func processSupplProvisionAppendixes(provision *jplaw.SupplProvision, imgProc *I
 }
 
 // processSupplProvisionAppdxTable processes supplementary provision appendix table
-func processSupplProvisionAppdxTable(table *jplaw.SupplProvisionAppdxTable, imgProc *ImageProcessor) string {
+func processSupplProvisionAppdxTable(table *jplaw.SupplProvisionAppdxTable, imgProc ImageProcessorInterface) string {
 	body := `<div class="suppl-appdx-table">`
 
 	// Add title if present
@@ -163,7 +163,7 @@ func processSupplProvisionAppdxTable(table *jplaw.SupplProvisionAppdxTable, imgP
 }
 
 // processSupplProvisionAppdxStyle processes supplementary provision appendix style
-func processSupplProvisionAppdxStyle(style *jplaw.SupplProvisionAppdxStyle, imgProc *ImageProcessor) string {
+func processSupplProvisionAppdxStyle(style *jplaw.SupplProvisionAppdxStyle, imgProc ImageProcessorInterface) string {
 	body := `<div class="suppl-appdx-style">`
 
 	// Add title if present
@@ -188,7 +188,7 @@ func processSupplProvisionAppdxStyle(style *jplaw.SupplProvisionAppdxStyle, imgP
 }
 
 // processSupplProvisionAppdx processes supplementary provision appendix
-func processSupplProvisionAppdx(appdx *jplaw.SupplProvisionAppdx, _ *ImageProcessor) string {
+func processSupplProvisionAppdx(appdx *jplaw.SupplProvisionAppdx, _ ImageProcessorInterface) string {
 	body := `<div class="suppl-appdx">`
 
 	// Add arithmetic formula number if present

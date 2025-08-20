@@ -168,7 +168,7 @@ func createEPUBFromData(data *jplaw.Law) (*epub.Epub, error) {
 }
 
 // createImageProcessor creates an image processor from options
-func createImageProcessor(book *epub.Epub, opts *EPUBOptions) *ImageProcessor {
+func createImageProcessor(book *epub.Epub, opts *EPUBOptions) ImageProcessorInterface {
 	if opts == nil || opts.APIClient == nil || opts.RevisionID == "" {
 		return nil
 	}
